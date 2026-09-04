@@ -221,10 +221,11 @@ export function App() {
         onNavigate={navigateTo}
       />
 
-      {/* Mobile Sticky Bottom CTA */}
+      {/* Mobile App Bottom Navigation Bar */}
       <MobileBottomCTA
+        currentTab={currentTab}
+        onNavigate={navigateTo}
         onOpenInquiryModal={() => handleOpenInquiryModal(selectedProperty || undefined)}
-        onExploreClick={() => navigateTo('explore')}
         savedCount={savedPropertyIds.length}
         onOpenSavedDrawer={() => setIsSavedDrawerOpen(true)}
       />
