@@ -66,43 +66,45 @@ export const MobileBottomCTA: React.FC<MobileBottomCTAProps> = ({
       label: isBn ? 'ইনকোয়ারি' : 'Enquire',
       icon: Sparkles,
       action: onOpenInquiryModal,
-      isPrimary: true,
+      isEnquire: true,
     },
   ];
 
   return (
     <nav 
       aria-label="Mobile Bottom Navigation"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200/90 px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-4px_25px_rgba(0,0,0,0.08)]"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200/90 px-1 pt-1.5 pb-[max(0.6rem,env(safe-area-inset-bottom))] shadow-[0_-4px_25px_rgba(0,0,0,0.06)]"
     >
-      <div className="flex items-center justify-around max-w-md mx-auto">
+      <div className="flex items-center justify-between max-w-md mx-auto">
         {navTabs.map((tab) => {
           const Icon = tab.icon;
 
-          if (tab.isPrimary) {
+          // Enquire Tab: Clean, flush, brand-highlighted without awkward negative margins
+          if (tab.isEnquire) {
             return (
               <button
                 key={tab.id}
                 onClick={tab.action}
                 aria-label="Enquire Flat"
-                className="flex flex-col items-center justify-center -mt-3 px-3.5 py-1.5 rounded-2xl bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-black shadow-md active:scale-95 transition-all group"
+                className="flex-1 flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all relative group active:scale-95"
               >
-                <div className="w-7 h-7 rounded-full bg-flatzy-navy/10 flex items-center justify-center transition-transform group-hover:rotate-12">
-                  <Icon className="w-4 h-4 text-flatzy-navy stroke-[2.5]" />
+                <div className="w-7 h-7 rounded-xl bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy flex items-center justify-center shadow-xs transition-transform group-hover:scale-105">
+                  <Icon className="w-4 h-4 stroke-[2.4] text-flatzy-navy" />
                 </div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider mt-0.5 leading-none">
+                <span className="text-[10px] font-black text-flatzy-navy tracking-tight mt-1 leading-none">
                   {tab.label}
                 </span>
               </button>
             );
           }
 
+          // Regular Tabs (Home, Explore, Reels, Saved)
           return (
             <button
               key={tab.id}
               onClick={tab.action}
               aria-label={tab.label}
-              className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all relative ${
+              className={`flex-1 flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all relative active:scale-95 ${
                 tab.isActive
                   ? 'text-flatzy-navy font-bold'
                   : 'text-slate-500 hover:text-slate-800'
@@ -111,18 +113,18 @@ export const MobileBottomCTA: React.FC<MobileBottomCTAProps> = ({
               <div className="relative">
                 <Icon
                   className={`w-5 h-5 transition-transform ${
-                    tab.isActive ? 'scale-110 stroke-[2.5]' : 'stroke-[1.8]'
+                    tab.isActive ? 'scale-110 stroke-[2.4]' : 'stroke-[1.8]'
                   }`}
                 />
 
-                {/* Reels Active Badge */}
+                {/* Reels Active Pulse Badge */}
                 {tab.hasBadge && (
-                  <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
+                  <span className="absolute -top-0.5 -right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
                 )}
 
                 {/* Saved Count Badge */}
                 {tab.count !== undefined && tab.count > 0 && (
-                  <span className="absolute -top-1.5 -right-2.5 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white shadow-xs">
+                  <span className="absolute -top-1.5 -right-2 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white shadow-xs">
                     {tab.count}
                   </span>
                 )}
@@ -136,9 +138,9 @@ export const MobileBottomCTA: React.FC<MobileBottomCTAProps> = ({
                 {tab.label}
               </span>
 
-              {/* Active Tab Underline Pill */}
+              {/* Active Tab Indicator Pill */}
               {tab.isActive && (
-                <span className="w-3 h-1 bg-flatzy-yellow rounded-full mt-1 animate-in zoom-in-50 duration-200" />
+                <span className="w-3 h-0.5 bg-flatzy-yellow rounded-full mt-0.5 animate-in zoom-in-50 duration-200" />
               )}
             </button>
           );

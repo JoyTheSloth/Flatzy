@@ -124,10 +124,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </button>
 
-          {/* Primary CTA button: Enquire Flat */}
+          {/* Primary CTA button: Enquire Flat (Desktop only - mobile uses bottom navbar) */}
           <button
             onClick={onOpenInquiryModal}
-            className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-bold text-xs shadow-soft hover:shadow-yellow-glow transition-all duration-200 active:scale-95 group"
+            className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-bold text-xs shadow-soft hover:shadow-yellow-glow transition-all duration-200 active:scale-95 group"
           >
             <Sparkles className="w-3.5 h-3.5 transition-transform group-hover:rotate-12" />
             <span>{t('nav.findMyFlat')}</span>
