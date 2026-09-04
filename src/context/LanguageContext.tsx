@@ -1,0 +1,321 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+export type Language = 'en' | 'bn';
+
+interface LanguageContextType {
+  language: Language;
+  toggleLanguage: () => void;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
+}
+
+export const translations: Record<Language, Record<string, string>> = {
+  en: {
+    // Navbar
+    'nav.home': 'Home',
+    'nav.explore': 'Explore Flats',
+    'nav.locations': 'Locations',
+    'nav.reels': 'Reels',
+    'nav.howItWorks': 'How It Works',
+    'nav.about': 'About',
+    'nav.contact': 'Contact',
+    'nav.findMyFlat': 'Enquire Flat',
+    'nav.tagline': 'Skip the hassle.',
+
+    // Hero
+    'hero.badge': 'Kolkata’s Hassle-Free Rental Discovery',
+    'hero.title1': 'Your next flat is',
+    'hero.title2': 'closer than you',
+    'hero.titleHighlight': 'think.',
+    'hero.subtitle': 'Find rental flats across Kolkata without endless searching or calling brokers. Curated flats for students, bachelors, tech professionals and families.',
+    'hero.exploreCta': 'Explore Flats',
+    'hero.howItWorksCta': 'How Flatzy Works',
+    'hero.popularSearches': 'Popular Searches:',
+
+    // Quick pills
+    'pill.students': 'Students (Amity/Techno)',
+    'pill.itPros': 'IT Professionals (Sector V)',
+    'pill.newTown': 'New Town High-Rises',
+    'pill.saltLake': 'Salt Lake Independent',
+
+    // Handpicked
+    'handpicked.badge': 'Handpicked Highlights',
+    'handpicked.title': 'Flats worth checking out',
+    'handpicked.subtitle': 'Handpicked rental options from locations people actually want to live in.',
+    'handpicked.viewAll': 'View All',
+    'handpicked.catalogBtn': 'Open Full Kolkata Rental Catalog',
+    'handpicked.perMonth': '/month',
+    'handpicked.viewFlat': 'View Flat',
+
+    // Two Ways
+    'twoways.badge': 'Choose Your Discovery Path',
+    'twoways.title': 'Two ways to find your next home',
+    'twoways.locTitle': 'Explore by Neighborhood',
+    'twoways.locDesc': 'Detailed guides for New Town, Shapoorji, Rajarhat, Salt Lake, and Sector V. Check average rents, nearby colleges, and transit hubs.',
+    'twoways.locCta': 'View Location Guides',
+    'twoways.reelTitle': 'Flat Video Tours & Reels',
+    'twoways.reelDesc': 'Watch verified room-by-room video walkthroughs of Kolkata rental flats before you step out to inspect.',
+    'twoways.reelCta': 'Explore Video Gallery',
+
+    // 3 Steps
+    'steps.badge': 'Zero Stress Guarantee',
+    'steps.title': 'Finding a flat shouldn\'t be this hard.',
+    'steps.subtitle': 'Skip the broker cold calls, fake photos, and 100 open tabs.',
+    'steps.s1Title': 'Find a flat',
+    'steps.s1Desc': 'Browse on our website or spot it through our Instagram reels.',
+    'steps.s2Title': 'Tell us what you want',
+    'steps.s2Desc': 'Submit an inquiry on the listing or send us the Instagram video.',
+    'steps.s3Title': 'We connect you',
+    'steps.s3Desc': 'We connect your details directly with the verified broker to visit.',
+    'steps.seeFaqs': 'See full comparison & Kolkata rental FAQs',
+
+    // Banner CTA
+    'cta.title': 'Find your flat. Skip the hassle.',
+    'cta.subtitle': 'Tell us your budget and target location in Kolkata, and our team will match you with available flats.',
+    'cta.btn': 'Find My Flat',
+    'cta.browse': 'Browse Catalog',
+
+    // Locations Page
+    'locations.badge': 'Kolkata Zones',
+    'locations.title': 'Where do you want to live?',
+    'locations.subtitle': 'Pick your neighborhood to view verified flats and skip the broker hassle.',
+    'locations.flatsAvailable': 'Available Flats',
+    'locations.explore': 'Explore Flats',
+    'locations.customTitle': 'Looking somewhere else?',
+    'locations.customDesc': 'Searching outside New Town or Salt Lake? Drop your preferred area and budget — we\'ll check with our Kolkata broker network.',
+    'locations.customCta': 'Request custom location →',
+
+    // Reel Page
+    'reels.badge': 'Flatzy Video Gallery',
+    'reels.title': 'Kolkata Flat Video Walkthroughs',
+    'reels.subtitle': 'Watch verified room-by-room video tours of rental flats across Kolkata. Experience the vibe before you visit.',
+    'reels.openInsta': 'Instagram @flatzykolkata',
+    'reels.sharingBadge': 'Why Video Tours?',
+    'reels.sharingTitle': 'Tour Kolkata flats from your phone. Zero surprise visits.',
+    'reels.sharingSubtitle': 'Raw camera walkthroughs reveal natural light, room scale, bathroom fixtures, and storage before you commute.',
+
+    // About Page
+    'about.badge': 'Kolkata Rental Discovery',
+    'about.title': 'We\'re making Kolkata rentals a little less painful.',
+    'about.quote1': '"I like this flat"',
+    'about.quote2': '"I want to see it"',
+    'about.btnExplore': 'Explore Kolkata Flats',
+
+    // Contact Page
+    'contact.badge': 'Direct Contact',
+    'contact.title': 'Let\'s find your next flat.',
+    'contact.subtitle': 'Reach out directly on WhatsApp or leave your details below.',
+    'contact.whatsappBtn': 'WhatsApp Flatzy',
+    'contact.instaBtn': 'DM @flatzykolkata',
+    'contact.formTitle': 'Tell us what you\'re looking for',
+    'contact.submitBtn': 'Talk to Flatzy',
+
+    // How It Works Page
+    'hiw.badge': 'The Process',
+    'hiw.title': 'How Flatzy Works',
+    'hiw.subtitle': 'From scrolling on your phone to unlocking your flat door in 3 simple steps.',
+    'hiw.step1Title': 'Find a flat',
+    'hiw.step1Desc': 'Browse flats on our website, or send any Kolkata flat Reel to @flatzykolkata on Instagram.',
+    'hiw.step2Title': 'Tell us what you want',
+    'hiw.step2Desc': 'Submit a 20-second inquiry with your move-in date, budget, and tenant type.',
+    'hiw.step3Title': 'We connect you',
+    'hiw.step3Desc': 'We introduce you directly to the verified broker managing that property. No cold calls.',
+    'hiw.faqTitle': 'Frequently Asked Questions',
+
+    // Footer
+    'footer.desc': 'Kolkata’s modern rental discovery platform. Whether you discover a flat through an Instagram Reel or search directly, we get you moved in without broker headaches.',
+    'footer.tagline': 'Rent without the broker hassle.',
+    'footer.quickLinks': 'Explore Flatzy',
+    'footer.topHubs': 'Popular Kolkata Hubs',
+    'footer.needHelp': 'Looking for a flat?',
+    'footer.helpDesc': 'Share your target area and budget with our Kolkata team for direct matching.',
+    'footer.inquireBtn': 'Request Custom Search',
+    'footer.verified': '100% Verified Vacancies',
+    'footer.noGatekeeping': 'Zero Moral Policing',
+    'footer.instaDiscovery': 'Instagram Reel Discovery',
+    'footer.directConnect': 'Direct Broker Connect',
+    'footer.rights': 'All rights reserved.',
+    'footer.crafted': 'Crafted in Kolkata for hassle-free renting.',
+  },
+  bn: {
+    // Navbar
+    'nav.home': 'হোম',
+    'nav.explore': 'ফ্ল্যাট খুঁজুন',
+    'nav.locations': 'এলাকা',
+    'nav.reels': 'রিলস',
+    'nav.howItWorks': 'কীভাবে কাজ করে',
+    'nav.about': 'আমাদের কথা',
+    'nav.contact': 'যোগাযোগ',
+    'nav.findMyFlat': 'ফ্ল্যাট ইনকোয়ারি',
+    'nav.tagline': 'ঝক্কি ছাড়াই খুঁজুন।',
+
+    // Hero
+    'hero.badge': 'কলকাতায় ঝামেলামুক্ত ফ্ল্যাট খোঁজার ঠিকানা',
+    'hero.title1': 'আপনার পছন্দের ফ্ল্যাট এখন',
+    'hero.title2': 'আপনার',
+    'hero.titleHighlight': 'হাতের নাগালে।',
+    'hero.subtitle': 'কলকাতার যেকোনো প্রান্তে ভাড়া ফ্ল্যাট খুঁজুন কোনো হয়রানি বা বারবার ব্রোকারকে ফোন না করেই। ছাত্র-ছাত্রী, ব্যাচেলর ও পরিবারের জন্য বাছাই করা অপশন।',
+    'hero.exploreCta': 'ফ্ল্যাট দেখুন',
+    'hero.howItWorksCta': 'কীভাবে কাজ করে',
+    'hero.popularSearches': 'জনপ্রিয় এলাকা:',
+
+    // Quick pills
+    'pill.students': 'ছাত্র-ছাত্রী (শাপুরজি / অ্যামিটি)',
+    'pill.itPros': 'আইটি প্রফেশনাল (সেক্টর ৫)',
+    'pill.newTown': 'নিউ টাউন হাই-রাইজ',
+    'pill.saltLake': 'সল্টলেক স্বাধীন ফ্ল্যাট',
+
+    // Handpicked
+    'handpicked.badge': 'বাছাই করা সেরা ফ্ল্যাট',
+    'handpicked.title': 'পছন্দসই কিছু ভাড়ার ফ্ল্যাট',
+    'handpicked.subtitle': 'যেসব এলাকায় মানুষ সবচেয়ে বেশি থাকতে পছন্দ করে, সেখানকার সেরা অপশন।',
+    'handpicked.viewAll': 'সব দেখুন',
+    'handpicked.catalogBtn': 'কলকাতার সব ভাড়ার ফ্ল্যাট দেখুন',
+    'handpicked.perMonth': '/মাস',
+    'handpicked.viewFlat': 'বিস্তারিত দেখুন',
+
+    // Two Ways
+    'twoways.badge': 'বাড়ি খোঁজার সহজ পথ',
+    'twoways.title': 'ফ্ল্যাট খুঁজে পাওয়ার দুটি সহজ উপায়',
+    'twoways.locTitle': 'এলাকা অনুযায়ী খুঁজুন',
+    'twoways.locDesc': 'নিউ টাউন, শাপুরজি, রাজারহাট, সল্টলেক এবং সেক্টর ৫-এর সম্পূর্ণ গাইড। গড় ভাড়া, কলেজ ও যাতায়াতের সুবিধা জানুন।',
+    'twoways.locCta': 'এলাকার তালিকা দেখুন',
+    'twoways.reelTitle': 'ফ্ল্যাট ভিডিও ট্যুর ও রিলস',
+    'twoways.reelDesc': 'বাড়ি বসেই দেখুন কলকাতার ভেরিফায়েড ফ্ল্যাটের সম্পূর্ণ রুম-বাই-রুম ভিডিও ট্যুর ও রিলস।',
+    'twoways.reelCta': 'ভিডিও গ্যালারি দেখুন',
+
+    // 3 Steps
+    'steps.badge': 'জিরো স্ট্রেস গ্যারান্টি',
+    'steps.title': 'ফ্ল্যাট খোঁজা এত কঠিন হওয়া উচিত নয়।',
+    'steps.subtitle': 'অযথা ব্রোকারের ফোন, ভুয়া ছবি আর ডজনখানেক ওয়েবসাইটের ঝামেলা আর নয়।',
+    'steps.s1Title': 'ফ্ল্যাট পছন্দ করুন',
+    'steps.s1Desc': 'আমাদের ওয়েবসাইটে ব্রাউজ করুন অথবা ইনস্টাগ্রাম রিলে দেখুন।',
+    'steps.s2Title': 'আপনার পছন্দ জানান',
+    'steps.s2Desc': 'লিস্টিংয়ে ফর্ম পূরণ করুন অথবা রিলটি আমাদের ইনবক্সে পাঠান।',
+    'steps.s3Title': 'আমরা ব্রোকারের সাথে পরিচয় করাবো',
+    'steps.s3Desc': 'ফ্ল্যাটটি দেখতে যাওয়ার জন্য আমরা সরাসরি ব্রোকারের সাথে যোগাযোগ করিয়ে দেব।',
+    'steps.seeFaqs': 'কলকাতার ভাড়ার নিয়ম ও সাধারণ প্রশ্নোত্তর দেখুন',
+
+    // Banner CTA
+    'cta.title': 'পছন্দের ফ্ল্যাট খুঁজুন। ঝক্কি এড়িয়ে চলুন।',
+    'cta.subtitle': 'আপনার বাজেট ও পছন্দের এলাকা জানান, আমাদের টিম দ্রুত উপযুক্ত ফ্ল্যাটের ব্যবস্থা করে দেবে।',
+    'cta.btn': 'আমার ফ্ল্যাট খুঁজুন',
+    'cta.browse': 'সব ফ্ল্যাট দেখুন',
+
+    // Locations Page
+    'locations.badge': 'কলকাতার এলাকা',
+    'locations.title': 'আপনি কোন এলাকায় থাকতে চান?',
+    'locations.subtitle': 'আপনার পছন্দের এলাকা বেছে নিন এবং ব্রোকারের ঝামেলা ছাড়াই ফ্ল্যাট দেখুন।',
+    'locations.flatsAvailable': 'উপলব্ধ ফ্ল্যাট',
+    'locations.explore': 'ফ্ল্যাট দেখুন',
+    'locations.customTitle': 'অন্য কোনো এলাকা খুঁজছেন?',
+    'locations.customDesc': 'নিউ টাউন বা সল্টলেকের বাইরে খুঁজছেন? আপনার বাজেট ও এলাকা জানান, আমরা আমাদের নেটওয়ার্ক থেকে খুঁজে দেব।',
+    'locations.customCta': 'পছন্দের এলাকা জানান →',
+
+    // Reel Page
+    'reels.badge': 'ফ্ল্যাট ভিডিও গ্যালারি',
+    'reels.title': 'কলকাতার ফ্ল্যাট ভিডিও ওয়াকথ্রু',
+    'reels.subtitle': 'বাড়ি বসেই দেখুন কলকাতার ভেরিফায়েড ফ্ল্যাটের সম্পূর্ণ রুম-বাই-রুম ভিডিও ট্যুর ও রিলস।',
+    'reels.openInsta': 'ইনস্টাগ্রাম @flatzykolkata',
+    'reels.sharingBadge': 'ভিডিও ট্যুরের সুবিধা',
+    'reels.sharingTitle': 'ফোনেই দেখে নিন ফ্ল্যাটের প্রতিটা কোণ।',
+    'reels.sharingSubtitle': 'বাস্তব ভিডিও ওয়াকথ্রু দেখে তবেই ভিজিট করুন, নষ্ট হবে না অযথা সময়।',
+
+    // About Page
+    'about.badge': 'আমাদের গল্প',
+    'about.title': 'কলকাতায় ফ্ল্যাট খোঁজার কষ্ট আমরা কমাতে এসেছি।',
+    'about.quote1': '"ফ্ল্যাটটা খুব ভালো লেগেছে"',
+    'about.quote2': '"আমি দেখতে যেতে চাই"',
+    'about.btnExplore': 'কলকাতার ফ্ল্যাট দেখুন',
+
+    // Contact Page
+    'contact.badge': 'সরাসরি যোগাযোগ',
+    'contact.title': 'আসুন আপনার নতুন বাড়ি খুঁজি।',
+    'contact.subtitle': 'সরাসরি হোয়াটসঅ্যাপে কথা বলুন বা নিচে আপনার তথ্য জমা দিন।',
+    'contact.whatsappBtn': 'হোয়াটসঅ্যাপে চ্যাট করুন',
+    'contact.instaBtn': 'ইনস্টাগ্রামে ডিএম করুন',
+    'contact.formTitle': 'আপনার কী ধরনের ফ্ল্যাট প্রয়োজন?',
+    'contact.submitBtn': 'ফ্ল্যাটজির সাথে কথা বলুন',
+
+    // How It Works Page
+    'hiw.badge': 'পদ্ধতি',
+    'hiw.title': 'কীভাবে কাজ করে ফ্ল্যাটজি',
+    'hiw.subtitle': 'মোবাইলে স্ক্রোলিং থেকে ফ্ল্যাটের চাবি পাওয়া পর্যন্ত ৩টি সহজ ধাপ।',
+    'hiw.step1Title': 'ফ্ল্যাট পছন্দ করুন',
+    'hiw.step1Desc': 'আমাদের সাইটে ফ্ল্যাট ব্রাউজ করুন অথবা ইনস্টাগ্রামে দেখা যেকোনো ভিডিও রিল পাঠান।',
+    'hiw.step2Title': 'পছন্দের তথ্য দিন',
+    'hiw.step2Desc': 'আপনার বাজেট, ওঠার তারিখ ও পছন্দ জানিয়ে মাত্র ২০ সেকেন্ডে ফর্ম জমা দিন।',
+    'hiw.step3Title': 'আমরা পরিচয় করাবো',
+    'hiw.step3Desc': 'সংশ্লিষ্ট ফ্ল্যাটের দায়িত্বপ্রাপ্ত ভেরিফায়েড ব্রোকারের সাথে সরাসরি যোগাযোগ করিয়ে দেব।',
+    'hiw.faqTitle': 'সাধারণ কিছু প্রশ্নোত্তর',
+
+    // Footer
+    'footer.desc': 'কলকাতার আধুনিক ভাড়ার ফ্ল্যাট খোঁজার প্ল্যাটফর্ম। ইনস্টাগ্রাম রিল হোক বা ওয়েবসাইট, ব্রোকারের ঝামেলা ছাড়া ফ্ল্যাট খুঁজে পান।',
+    'footer.tagline': 'ব্রোকার ঝামেলা ছাড়া ফ্ল্যাট খুঁজুন।',
+    'footer.quickLinks': 'এক্সপ্লোর করুন',
+    'footer.topHubs': 'জনপ্রিয় এলাকা',
+    'footer.needHelp': 'পছন্দের ফ্ল্যাট খুঁজছেন?',
+    'footer.helpDesc': 'আপনার বাজেট ও পছন্দের এলাকা জানালেই আমাদের টিম সেরা অপশন খুঁজে দেবে।',
+    'footer.inquireBtn': 'কাস্টম সার্চ রিকোয়েস্ট',
+    'footer.verified': '১০০% ভেরিফায়েড ফ্ল্যাট',
+    'footer.noGatekeeping': 'কোনও মোরাল পুলিশিং নেই',
+    'footer.instaDiscovery': 'ইনস্টাগ্রাম রিল ডিসকভারি',
+    'footer.directConnect': 'সরাসরি ব্রোকার কানেক্ট',
+    'footer.rights': 'সর্বস্বত্ব সংরক্ষিত।',
+    'footer.crafted': 'কলকাতায় তৈরি, ভাড়াটেকে স্বস্তি দিতে।',
+  }
+};
+
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [language, setLanguageState] = useState<Language>(() => {
+    try {
+      const stored = localStorage.getItem('flatzy_lang');
+      return (stored === 'bn' || stored === 'en') ? stored : 'en';
+    } catch {
+      return 'en';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('flatzy_lang', language);
+    } catch {}
+
+    // Apply font family attribute or class if Bengali
+    if (language === 'bn') {
+      document.documentElement.lang = 'bn';
+      document.body.classList.add('font-bengali');
+    } else {
+      document.documentElement.lang = 'en';
+      document.body.classList.remove('font-bengali');
+    }
+  }, [language]);
+
+  const toggleLanguage = () => {
+    setLanguageState((prev) => (prev === 'en' ? 'bn' : 'en'));
+  };
+
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+  };
+
+  const t = (key: string): string => {
+    return translations[language]?.[key] || translations['en']?.[key] || key;
+  };
+
+  return (
+    <LanguageContext.Provider value={{ language, toggleLanguage, setLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
+
+export const useLanguage = (): LanguageContextType => {
+  const context = useContext(LanguageContext);
+  if (!context) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  return context;
+};
