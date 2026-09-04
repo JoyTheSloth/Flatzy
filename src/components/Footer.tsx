@@ -36,24 +36,160 @@ export const Footer: React.FC<FooterProps> = ({
   ];
 
   return (
-    <footer className="relative bg-[#0B132B] text-white pt-12 pb-10 border-t border-slate-800/80 overflow-hidden">
+    <footer className="relative bg-[#0B132B] text-white pt-8 sm:pt-12 pb-6 sm:pb-10 border-t border-slate-800/80 overflow-hidden">
       
       {/* Ambient background glow & subtle city backdrop */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-64 bg-gradient-to-b from-flatzy-yellow/5 via-transparent to-transparent pointer-events-none -z-10" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-48 bg-gradient-to-b from-flatzy-yellow/5 via-transparent to-transparent pointer-events-none -z-10" />
       <div 
-        className="absolute bottom-0 left-0 right-0 h-48 bg-cover bg-bottom opacity-5 pointer-events-none -z-10"
+        className="absolute bottom-0 left-0 right-0 h-40 bg-cover bg-bottom opacity-5 pointer-events-none -z-10"
         style={{ backgroundImage: "url('/city-bg.png')" }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         
         {/* ========================================================================= */}
-        {/* MAIN 4-COLUMN FOOTER CONTENT */}
+        {/* 1. MOBILE-OPTIMIZED COMPACT FOOTER (Visible on phone: < md) */}
         {/* ========================================================================= */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 pb-10 border-b border-slate-800/70">
+        <div className="md:hidden space-y-6 pb-6 border-b border-slate-800/70">
+          
+          {/* Mobile Top Brand & Direct Action Pills */}
+          <div className="space-y-3 text-left">
+            <div className="flex items-center justify-between">
+              <FlatzyLogo variant="dark" onClick={() => onNavigate('home')} size="md" />
+              
+              <span className="text-[10px] font-bold uppercase tracking-wider text-flatzy-yellow bg-flatzy-yellow/10 px-2 py-0.5 rounded-full border border-flatzy-yellow/20">
+                Kolkata
+              </span>
+            </div>
+
+            <p className="text-slate-400 text-xs leading-relaxed">
+              {t('footer.tagline')}
+            </p>
+
+            {/* Quick Contact Buttons Row */}
+            <div className="flex items-center gap-2 pt-1">
+              <a
+                href="https://wa.me/919830000000?text=Hi%20Flatzy!%20I%20am%20looking%20for%20a%20rental%20flat%20in%20Kolkata"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-2 px-3 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                <span>WhatsApp</span>
+              </a>
+
+              <a
+                href="https://instagram.com/flatzykolkata"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-2 px-3 rounded-xl bg-purple-950/50 hover:bg-purple-900/70 border border-pink-500/30 text-pink-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <Instagram className="w-3.5 h-3.5 text-pink-400" />
+                <span>@flatzykolkata</span>
+              </a>
+            </div>
+          </div>
+
+          {/* Mobile 2-Column Compact Grid: Links & Neighborhoods */}
+          <div className="grid grid-cols-2 gap-4 pt-1">
+            
+            {/* Quick Links Column */}
+            <div className="space-y-2 text-left">
+              <h4 className="text-[11px] uppercase tracking-wider font-extrabold text-flatzy-yellow">
+                {t('footer.quickLinks')}
+              </h4>
+              <ul className="space-y-1.5 text-xs text-slate-300">
+                <li>
+                  <button onClick={() => onNavigate('explore')} className="hover:text-flatzy-yellow transition-colors">
+                    {t('nav.explore')}
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => onNavigate('locations')} className="hover:text-flatzy-yellow transition-colors">
+                    {t('nav.locations')}
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => onNavigate('reels')} className="hover:text-flatzy-yellow transition-colors">
+                    {t('nav.reels')}
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => onNavigate('how-it-works')} className="hover:text-flatzy-yellow transition-colors">
+                    {t('nav.howItWorks')}
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => onNavigate('about')} className="hover:text-flatzy-yellow transition-colors">
+                    {t('nav.about')}
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => onNavigate('contact')} className="hover:text-flatzy-yellow transition-colors">
+                    {t('nav.contact')}
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            {/* Popular Hubs Column (Tappable Compact Pills) */}
+            <div className="space-y-2 text-left">
+              <h4 className="text-[11px] uppercase tracking-wider font-extrabold text-flatzy-yellow">
+                {t('footer.topHubs')}
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {hubs.map((hub) => (
+                  <button
+                    key={hub.name}
+                    onClick={() => {
+                      onSelectLocation(hub.name);
+                      onNavigate('explore');
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-semibold text-slate-200 hover:text-flatzy-yellow transition-colors"
+                  >
+                    {hub.name}
+                  </button>
+                ))}
+              </div>
+
+              {/* Free Renter Guarantee Note */}
+              <p className="text-[10px] text-slate-400 pt-1">
+                ✓ 100% Free for Renters
+              </p>
+            </div>
+
+          </div>
+
+          {/* Compact Inquiry Strip */}
+          <div className="p-3 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-800 flex items-center justify-between gap-3">
+            <div className="text-left space-y-0.5">
+              <span className="text-[10px] font-bold text-flatzy-yellow uppercase tracking-wider flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                <span>Need a flat?</span>
+              </span>
+              <p className="text-[11px] text-slate-300">
+                Tell us budget & area
+              </p>
+            </div>
+
+            <button
+              onClick={() => onOpenInquiryModal ? onOpenInquiryModal() : onNavigate('contact')}
+              className="py-1.5 px-3 rounded-xl bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-black text-xs shrink-0 transition-transform active:scale-95"
+            >
+              Request Flat
+            </button>
+          </div>
+
+        </div>
+
+        {/* ========================================================================= */}
+        {/* 2. DESKTOP 4-COLUMN FOOTER (Visible on md and above) */}
+        {/* ========================================================================= */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-12 gap-8 pb-8 border-b border-slate-800/70">
           
           {/* Col 1: Brand & Social Channels (lg: 4 cols) */}
-          <div className="lg:col-span-4 space-y-4">
+          <div className="lg:col-span-4 space-y-4 text-left">
             <FlatzyLogo variant="dark" onClick={() => onNavigate('home')} size="lg" />
             
             <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-sm">
@@ -99,7 +235,7 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
 
           {/* Col 2: Quick Links (lg: 2 cols) */}
-          <div className="lg:col-span-2 space-y-3.5">
+          <div className="lg:col-span-2 space-y-3.5 text-left">
             <h4 className="text-xs uppercase tracking-wider font-extrabold text-flatzy-yellow">
               {t('footer.quickLinks')}
             </h4>
@@ -162,7 +298,7 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
 
           {/* Col 3: Popular Hubs (lg: 3 cols) */}
-          <div className="lg:col-span-3 space-y-3.5">
+          <div className="lg:col-span-3 space-y-3.5 text-left">
             <h4 className="text-xs uppercase tracking-wider font-extrabold text-flatzy-yellow">
               {t('footer.topHubs')}
             </h4>
@@ -191,7 +327,7 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
 
           {/* Col 4: Custom Search / Help Card (lg: 3 cols) */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 text-left">
             <div className="rounded-2xl p-5 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800/90 shadow-xl space-y-3">
               <div className="flex items-center gap-2 text-flatzy-yellow">
                 <Sparkles className="w-4 h-4" />
@@ -222,9 +358,9 @@ export const Footer: React.FC<FooterProps> = ({
         </div>
 
         {/* ========================================================================= */}
-        {/* BOTTOM COPYRIGHT & LEGAL BAR */}
+        {/* 3. BOTTOM COPYRIGHT & LEGAL BAR */}
         {/* ========================================================================= */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
           <p>
             © 2026 <span className="text-white font-semibold">Flatzy Kolkata</span>. {t('footer.rights')}
           </p>
