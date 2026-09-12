@@ -113,13 +113,13 @@ export const translations: Record<Language, Record<string, string>> = {
     // How It Works Page
     'hiw.badge': 'The Process',
     'hiw.title': 'How Flatzy Works',
-    'hiw.subtitle': 'From scrolling on your phone to unlocking your flat door in 3 simple steps.',
-    'hiw.step1Title': 'Find a flat',
-    'hiw.step1Desc': 'Browse flats on our website, or send any Kolkata flat Reel to @flatzykolkata on Instagram.',
-    'hiw.step2Title': 'Tell us what you want',
-    'hiw.step2Desc': 'Submit a 20-second inquiry with your move-in date, budget, and tenant type.',
-    'hiw.step3Title': 'We connect you',
-    'hiw.step3Desc': 'We introduce you directly to the verified broker managing that property. No cold calls.',
+    'hiw.subtitle': 'From finding a flat to direct broker connection in 3 simple steps.',
+    'hiw.step1Title': 'Find or Choose a Flat',
+    'hiw.step1Desc': 'Browse verified flats on Flatzy, or tap Enquire to share what type of flat you are looking for in Kolkata.',
+    'hiw.step2Title': 'Fill Details & Send on WhatsApp',
+    'hiw.step2Desc': 'Quickly fill your requirement (BHK, budget, area & move-in date). It auto-generates your card and sends it in WhatsApp.',
+    'hiw.step3Title': 'We Connect You With the Broker',
+    'hiw.step3Desc': 'We review your request and connect you directly with the verified broker managing that property. No cold calls.',
     'hiw.faqTitle': 'Frequently Asked Questions',
 
     // Footer
@@ -240,13 +240,13 @@ export const translations: Record<Language, Record<string, string>> = {
     // How It Works Page
     'hiw.badge': 'পদ্ধতি',
     'hiw.title': 'কীভাবে কাজ করে ফ্ল্যাটজি',
-    'hiw.subtitle': 'মোবাইলে স্ক্রোলিং থেকে ফ্ল্যাটের চাবি পাওয়া পর্যন্ত ৩টি সহজ ধাপ।',
-    'hiw.step1Title': 'ফ্ল্যাট পছন্দ করুন',
-    'hiw.step1Desc': 'আমাদের সাইটে ফ্ল্যাট ব্রাউজ করুন অথবা ইনস্টাগ্রামে দেখা যেকোনো ভিডিও রিল পাঠান।',
-    'hiw.step2Title': 'পছন্দের তথ্য দিন',
-    'hiw.step2Desc': 'আপনার বাজেট, ওঠার তারিখ ও পছন্দ জানিয়ে মাত্র ২০ সেকেন্ডে ফর্ম জমা দিন।',
-    'hiw.step3Title': 'আমরা পরিচয় করাবো',
-    'hiw.step3Desc': 'সংশ্লিষ্ট ফ্ল্যাটের দায়িত্বপ্রাপ্ত ভেরিফায়েড ব্রোকারের সাথে সরাসরি যোগাযোগ করিয়ে দেব।',
+    'hiw.subtitle': 'পছন্দের ফ্ল্যাট বাছাই থেকে সরাসরি ব্রোকারের সাথে যোগাযোগের ৩টি সহজ ধাপ।',
+    'hiw.step1Title': 'ফ্ল্যাট বেছে নিন বা খুঁজুন',
+    'hiw.step1Desc': 'ফ্ল্যাটজি-তে ভেরিফায়েড ফ্ল্যাট ব্রাউজ করুন অথবা ইনকোয়ারি বাটনে ট্যাপ করে আপনার পছন্দের কথা জানান।',
+    'hiw.step2Title': 'তথ্য পূরণ করুন ও হোয়াটসঅ্যাপে পাঠান',
+    'hiw.step2Desc': 'বাজেট, এলাকা ও ওঠার তারিখ পূরণ করুন। স্বয়ংক্রিয়ভাবে মেসেজ তৈরি হয়ে আপনার হোয়াটসঅ্যাপে খুলে যাবে।',
+    'hiw.step3Title': 'আমরা ব্রোকারের সাথে যোগাযোগ করাবো',
+    'hiw.step3Desc': 'আমরা সরাসরি সেই ফ্ল্যাটের দায়িত্বপ্রাপ্ত ভেরিফায়েড ব্রোকারের সাথে আপনার যোগাযোগ করিয়ে দেব।',
     'hiw.faqTitle': 'সাধারণ কিছু প্রশ্নোত্তর',
 
     // Footer
