@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useLanguage } from '../context/LanguageContext';
-import type { LocationName, BudgetRange } from '../types/property';
+import type { Property, LocationName, BudgetRange } from '../types/property';
 import { submitLeadToGoogleSheet } from '../services/leadService';
 import { FLATZY_WHATSAPP_NUMBER, getWhatsAppUrl } from '../config/contact';
 
@@ -52,6 +52,7 @@ export interface BrokerRequirementData {
 interface RoleSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
+  targetProperty?: Property | null;
   onApplyFilters?: (location?: LocationName, budget?: BudgetRange) => void;
 }
 
@@ -70,6 +71,7 @@ const PROPERTY_TYPES = ['1 BHK', '2 BHK', '3 BHK', '4+ BHK', 'Studio / 1 RK', 'C
 export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
   isOpen,
   onClose,
+  targetProperty,
   onApplyFilters,
 }) => {
   const { language } = useLanguage();
@@ -104,6 +106,23 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
     notes: '',
   });
 
+  // Prefill property when opened with a target flat
+  React.useEffect(() => {
+    if (isOpen) {
+      if (targetProperty) {
+        setBuyerData(prev => ({
+          ...prev,
+          lookingForBhk: targetProperty.bhkType || prev.lookingForBhk,
+          budget: `₹${targetProperty.monthlyRent.toLocaleString('en-IN')}/mo`,
+          location: targetProperty.location || prev.location,
+        }));
+        setCurrentView('buyer');
+      } else {
+        setCurrentView('selection');
+      }
+    }
+  }, [isOpen, targetProperty]);
+
   if (!isOpen) return null;
 
   const toggleOperatingArea = (area: string) => {
@@ -129,18 +148,25 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
   // Safe formatting without unstable variation selectors for 100% reliable rendering
   const generateBuyerText = (data: BuyerRequirementData) => {
     return (
-      `*FLAT REQUIREMENT — FLATZY KOLKATA*\n` +
+      `*${targetProperty ? 'FLAT INQUIRY' : 'FLAT REQUIREMENT'} — FLATZY KOLKATA*\n` +
       `━━━━━━━━━━━━━━━━━━━━━━\n` +
+      (targetProperty
+        ? `• *Selected Flat:* ${targetProperty.title} (#${targetProperty.brokerReferenceId})\n` +
+          `• *Rent:* ₹${targetProperty.monthlyRent.toLocaleString('en-IN')}/month\n` +
+          `• *Location:* ${targetProperty.subLocation}, ${targetProperty.location}\n`
+        : '') +
       `• *Name:* ${data.fullName || 'Prospective Tenant'}\n` +
       `• *WhatsApp:* +91 ${data.phone}\n` +
       (data.companyName ? `• *Company / College:* ${data.companyName}\n` : '') +
-      `• *Looking for:* ${data.lookingForBhk}\n` +
-      `• *Budget:* ${data.budget}\n` +
-      `• *Preferred Area:* ${data.location}\n` +
+      (!targetProperty ? `• *Looking for:* ${data.lookingForBhk}\n` : '') +
+      (!targetProperty ? `• *Budget:* ${data.budget}\n` : '') +
+      (!targetProperty ? `• *Preferred Area:* ${data.location}\n` : '') +
       (data.shiftingDate ? `• *Expected Shifting:* ${data.shiftingDate}\n` : '') +
       `• *Tenant Category:* ${data.tenantCategory}\n` +
       `━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `Please share available verified options matching my requirements!`
+      (targetProperty
+        ? `Please connect me with the verified broker to schedule a visit!`
+        : `Please share available verified options matching my requirements!`)
     );
   };
 
@@ -606,12 +632,37 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
             <div className="text-center space-y-0.5">
               <h3 className="text-lg font-black text-flatzy-navy font-poppins flex items-center justify-center gap-1.5">
                 <Home className="w-4 h-4 text-flatzy-navy" />
-                <span>{isBn ? 'আপনার পছন্দ জানান' : 'Your Flat Requirements'}</span>
+                <span>
+                  {targetProperty 
+                    ? (isBn ? 'ফ্ল্যাট ইনকোয়ারি' : 'Enquire About This Flat') 
+                    : (isBn ? 'আপনার পছন্দ জানান' : 'Your Flat Requirements')}
+                </span>
               </h3>
               <p className="text-xs text-slate-500">
-                {isBn ? 'মাত্র কয়েকটি সাধারণ তথ্য দিন' : 'Quick details to connect directly on WhatsApp'}
+                {targetProperty 
+                  ? `${targetProperty.subLocation}, ${targetProperty.location}` 
+                  : (isBn ? 'মাত্র কয়েকটি সাধারণ তথ্য দিন' : 'Quick details to connect directly on WhatsApp')}
               </p>
             </div>
+
+            {targetProperty && (
+              <div className="p-2.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 flex items-center gap-2.5 text-left">
+                <img 
+                  src={targetProperty.featuredImage} 
+                  alt={targetProperty.title} 
+                  className="w-11 h-11 rounded-xl object-cover shrink-0 border border-amber-200" 
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="font-bold text-xs text-slate-900 truncate">{targetProperty.title}</div>
+                  <div className="text-[10px] text-slate-600">
+                    {targetProperty.bhkType} • <span className="font-black text-flatzy-navy">₹{targetProperty.monthlyRent.toLocaleString('en-IN')}/mo</span>
+                  </div>
+                </div>
+                <span className="text-[9px] font-mono text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
+                  #{targetProperty.brokerReferenceId}
+                </span>
+              </div>
+            )}
 
             <form onSubmit={handleBuyerSubmit} className="space-y-3">
               

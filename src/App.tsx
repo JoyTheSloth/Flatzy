@@ -3,7 +3,6 @@ import type { Property, LocationName, BudgetRange, FilterState } from './types/p
 import { PROPERTIES_DATA } from './data/properties';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
-import { InquiryModal } from './components/InquiryModal';
 import { RoleSelectionModal } from './components/RoleSelectionModal';
 import { SavedFlatsDrawer } from './components/SavedFlatsDrawer';
 import { MobileBottomCTA } from './components/MobileBottomCTA';
@@ -98,7 +97,7 @@ export function App() {
 
   const handleOpenInquiryModal = (property?: Property) => {
     setInquiryTargetProperty(property || null);
-    setIsInquiryModalOpen(true);
+    setIsRoleModalOpen(true);
   };
 
   const handleApplyQuickFilter = (loc?: LocationName, budget?: BudgetRange) => {
@@ -201,24 +200,18 @@ export function App() {
         onOpenInquiryModal={() => handleOpenInquiryModal()}
       />
 
-      {/* Onboarding Role & Requirement Modal (Buyer/Renter vs Broker) */}
+      {/* Unified Inquiry & Role Selection Modal (Renter/Buyer vs Broker) */}
       <RoleSelectionModal
         isOpen={isRoleModalOpen}
-        onClose={() => setIsRoleModalOpen(false)}
+        targetProperty={inquiryTargetProperty}
+        onClose={() => {
+          setIsRoleModalOpen(false);
+          setInquiryTargetProperty(null);
+        }}
         onApplyFilters={(loc, budget) => {
           setIsRoleModalOpen(false);
+          setInquiryTargetProperty(null);
           handleApplyQuickFilter(loc, budget);
-        }}
-      />
-
-      {/* Inquiry Lead Capture Modal */}
-      <InquiryModal
-        isOpen={isInquiryModalOpen}
-        onClose={() => setIsInquiryModalOpen(false)}
-        selectedProperty={inquiryTargetProperty}
-        onSuccessExploreMore={() => {
-          setIsInquiryModalOpen(false);
-          navigateTo('explore');
         }}
       />
 
