@@ -4,8 +4,6 @@ import {
   ArrowLeft, 
   Send, 
   CheckCircle2, 
-  Copy, 
-  Check, 
   MessageSquare, 
   Sparkles, 
   Building2, 
@@ -15,13 +13,18 @@ import {
   Home, 
   Briefcase,
   Layers,
-  ChevronRight
+  ChevronRight,
+  Calendar,
+  Users,
+  Coins,
+  FileText,
+  Tag
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useLanguage } from '../context/LanguageContext';
 import type { LocationName, BudgetRange } from '../types/property';
 import { submitLeadToGoogleSheet } from '../services/leadService';
-import { FLATZY_WHATSAPP_NUMBER } from '../config/contact';
+import { FLATZY_WHATSAPP_NUMBER, getWhatsAppUrl } from '../config/contact';
 
 export type RoleModalView = 'selection' | 'broker' | 'buyer' | 'success';
 
@@ -29,10 +32,10 @@ export interface BuyerRequirementData {
   fullName: string;
   phone: string;
   companyName: string;
-  lookingForBhk: string; // '1 BHK' | '2 BHK' | '3 BHK'
+  lookingForBhk: string;
   budget: string;
   location: string;
-  shiftingDate: string; // yyyy-mm-dd or formatted text
+  shiftingDate: string;
   tenantCategory: 'Family' | 'Bachelor';
 }
 
@@ -76,7 +79,6 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
   const [currentView, setCurrentView] = useState<RoleModalView>('selection');
   const [submissionType, setSubmissionType] = useState<'buyer' | 'broker'>('buyer');
   const [generatedMessageText, setGeneratedMessageText] = useState('');
-  const [hasCopied, setHasCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Buyer / Renter Form State
@@ -104,7 +106,6 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Toggle area selection for broker
   const toggleOperatingArea = (area: string) => {
     setBrokerData(prev => {
       const exists = prev.operatingAreas.includes(area);
@@ -115,7 +116,6 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
     });
   };
 
-  // Toggle property type selection for broker
   const togglePropertyType = (type: string) => {
     setBrokerData(prev => {
       const exists = prev.propertyTypes.includes(type);
@@ -126,48 +126,50 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
     });
   };
 
-  // Format Renter WhatsApp text
+  // Safe formatting without unstable variation selectors for 100% reliable rendering
   const generateBuyerText = (data: BuyerRequirementData) => {
     return (
-      `🏠 *FLAT REQUIREMENT — FLATZY KOLKATA*\n` +
+      `*FLAT REQUIREMENT — FLATZY KOLKATA*\n` +
       `━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `👤 *Name:* ${data.fullName || 'Prospective Tenant'}\n` +
-      `📱 *WhatsApp:* +91 ${data.phone}\n` +
-      (data.companyName ? `🏢 *Company / College:* ${data.companyName}\n` : '') +
-      `🛏️ *Looking for:* ${data.lookingForBhk}\n` +
-      `💰 *Budget:* ${data.budget}\n` +
-      `📍 *Preferred Area:* ${data.location}\n` +
-      (data.shiftingDate ? `📅 *Expected Shifting:* ${data.shiftingDate}\n` : '') +
-      `👥 *Tenant Category:* ${data.tenantCategory}\n` +
+      `• *Name:* ${data.fullName || 'Prospective Tenant'}\n` +
+      `• *WhatsApp:* +91 ${data.phone}\n` +
+      (data.companyName ? `• *Company / College:* ${data.companyName}\n` : '') +
+      `• *Looking for:* ${data.lookingForBhk}\n` +
+      `• *Budget:* ${data.budget}\n` +
+      `• *Preferred Area:* ${data.location}\n` +
+      (data.shiftingDate ? `• *Expected Shifting:* ${data.shiftingDate}\n` : '') +
+      `• *Tenant Category:* ${data.tenantCategory}\n` +
       `━━━━━━━━━━━━━━━━━━━━━━\n` +
       `Please share available verified options matching my requirements!`
     );
   };
 
-  // Format Broker / Owner WhatsApp text
   const generateBrokerText = (data: BrokerRequirementData) => {
     return (
-      `💼 *PROPERTY PARTNER LISTING — FLATZY KOLKATA*\n` +
+      `*PROPERTY PARTNER LISTING — FLATZY KOLKATA*\n` +
       `━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `👤 *Partner Name:* ${data.fullName || 'Partner'}\n` +
-      `📱 *WhatsApp:* +91 ${data.phone}\n` +
-      `🏷️ *Partner Type:* ${data.brokerType === 'Owner' ? '🏡 Property Owner' : '💼 Real Estate Broker'}\n` +
-      (data.agencyName ? `🏢 *Agency / Building:* ${data.agencyName}\n` : '') +
-      `📍 *Operating Areas:* ${data.operatingAreas.join(', ')}\n` +
-      `🏠 *Property Types Available:* ${data.propertyTypes.join(', ')}\n` +
-      (data.notes ? `📝 *Notes / Inventory:* ${data.notes}\n` : '') +
+      `• *Partner Name:* ${data.fullName || 'Partner'}\n` +
+      `• *WhatsApp:* +91 ${data.phone}\n` +
+      `• *Role:* ${data.brokerType === 'Owner' ? 'Property Owner' : 'Real Estate Broker'}\n` +
+      (data.agencyName ? `• *Agency / Building:* ${data.agencyName}\n` : '') +
+      `• *Operating Areas:* ${data.operatingAreas.join(', ')}\n` +
+      `• *Properties Available:* ${data.propertyTypes.join(', ')}\n` +
+      (data.notes ? `• *Details / Notes:* ${data.notes}\n` : '') +
       `━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `Looking to collaborate and list properties on Flatzy Kolkata!`
+      `Looking to list properties on Flatzy Kolkata!`
     );
   };
 
-  // Open WhatsApp directly with the generated text
-  const openWhatsApp = (text: string) => {
-    const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+  const openWhatsAppUrl = (text: string) => {
+    const url = getWhatsAppUrl(text);
+    // Directly navigate or open - works reliably across mobile in-app browsers
+    try {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch {
+      window.location.href = url;
+    }
   };
 
-  // Handle Renter Submit
   const handleBuyerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -176,7 +178,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
     setGeneratedMessageText(compiledText);
     setSubmissionType('buyer');
 
-    // Automatically send to Google Sheets + backup to localStorage
+    // Automatically send to Google Sheets
     await submitLeadToGoogleSheet({
       fullName: buyerData.fullName,
       phone: buyerData.phone,
@@ -193,8 +195,8 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
     setIsSubmitting(false);
     setCurrentView('success');
 
-    // Automatically trigger WhatsApp in background/tab
-    openWhatsApp(compiledText);
+    // Trigger WhatsApp
+    openWhatsAppUrl(compiledText);
 
     try {
       confetti({
@@ -206,7 +208,6 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
     } catch {}
   };
 
-  // Handle Broker Submit
   const handleBrokerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -215,7 +216,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
     setGeneratedMessageText(compiledText);
     setSubmissionType('broker');
 
-    // Automatically send to Google Sheets + backup to localStorage
+    // Automatically send to Google Sheets
     await submitLeadToGoogleSheet({
       fullName: brokerData.fullName,
       phone: brokerData.phone,
@@ -235,8 +236,8 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
     setIsSubmitting(false);
     setCurrentView('success');
 
-    // Automatically trigger WhatsApp in background/tab
-    openWhatsApp(compiledText);
+    // Trigger WhatsApp
+    openWhatsAppUrl(compiledText);
 
     try {
       confetti({
@@ -246,18 +247,6 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
         colors: ['#FFC800', '#FF5722', '#0B132B', '#10B981']
       });
     } catch {}
-  };
-
-  const handleCopyText = async () => {
-    try {
-      await navigator.clipboard.writeText(generatedMessageText);
-      setHasCopied(true);
-      setTimeout(() => setHasCopied(false), 2500);
-    } catch {
-      // Fallback
-      setHasCopied(true);
-      setTimeout(() => setHasCopied(false), 2000);
-    }
   };
 
   return (
@@ -302,25 +291,25 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
               </button>
             )}
             <div className="flex items-center gap-1.5 text-xs font-black text-flatzy-navy">
-              <span className="text-base animate-bounce">✨</span>
+              <Sparkles className="w-3.5 h-3.5 text-flatzy-yellow animate-pulse" />
               <span>Flatzy Kolkata</span>
             </div>
           </div>
 
-          {/* Cross Button to navigate the website freely */}
+          {/* Close Button */}
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
             className="p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 transition-colors"
-            title="Close and browse website"
+            title="Close"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* ---------------------------------------------------- */}
-        {/* VIEW 1: INITIAL SCREEN WITH TWO CARDS */}
+        {/* VIEW 1: INITIAL SELECTION SCREEN */}
         {/* ---------------------------------------------------- */}
         {currentView === 'selection' && (
           <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 scrollbar-thin">
@@ -330,15 +319,15 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
               </h2>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
                 {isBn 
-                  ? 'সরাসরি তথ্য পূরণ করুন ও হোয়াটসঅ্যাপে তাৎক্ষণিক যোগাযোগ করুন' 
-                  : 'Select an option to generate your requirement or partner inquiry instantly'}
+                  ? 'সরাসরি তথ্য পূরণ করুন ও হোয়াটসঅ্যাপে যোগাযোগ করুন' 
+                  : 'Select an option to connect instantly on WhatsApp'}
               </p>
             </div>
 
-            {/* The Two Cards */}
+            {/* The Two Cards with robust SVG icons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               
-              {/* Card 1: Looking to Buy or Rent a Flat */}
+              {/* Card 1: Rent / Buy a Flat */}
               <div 
                 onClick={() => setCurrentView('buyer')}
                 role="button"
@@ -346,9 +335,9 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                 onKeyDown={(e) => e.key === 'Enter' && setCurrentView('buyer')}
                 className="group p-5 rounded-2xl border-2 border-amber-200 bg-amber-50/50 hover:bg-amber-100/60 hover:border-flatzy-yellow transition-all duration-200 cursor-pointer text-left flex flex-col justify-between shadow-xs hover:shadow-soft"
               >
-                <div className="space-y-2.5">
-                  <div className="text-3xl sm:text-4xl group-hover:scale-110 transition-transform inline-block">
-                    🏡
+                <div className="space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center group-hover:scale-105 transition-transform shadow-xs">
+                    <Home className="w-6 h-6 text-amber-700" />
                   </div>
                   <div>
                     <h3 className="text-base font-black text-flatzy-navy">
@@ -362,11 +351,11 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
 
                 <div className="mt-4 pt-2.5 border-t border-amber-200/60 text-xs font-bold text-flatzy-navy flex items-center justify-between">
                   <span>{isBn ? 'তথ্য দিন →' : 'Enter details →'}</span>
-                  <span>✨</span>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                 </div>
               </div>
 
-              {/* Card 2: I am a Broker / Property Owner */}
+              {/* Card 2: Broker or Owner */}
               <div 
                 onClick={() => setCurrentView('broker')}
                 role="button"
@@ -374,9 +363,9 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                 onKeyDown={(e) => e.key === 'Enter' && setCurrentView('broker')}
                 className="group p-5 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-flatzy-navy transition-all duration-200 cursor-pointer text-left flex flex-col justify-between shadow-xs hover:shadow-soft"
               >
-                <div className="space-y-2.5">
-                  <div className="text-3xl sm:text-4xl group-hover:scale-110 transition-transform inline-block">
-                    💼
+                <div className="space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-200 text-flatzy-navy flex items-center justify-center group-hover:scale-105 transition-transform shadow-xs">
+                    <Briefcase className="w-6 h-6 text-flatzy-navy" />
                   </div>
                   <div>
                     <h3 className="text-base font-black text-flatzy-navy">
@@ -390,13 +379,13 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
 
                 <div className="mt-4 pt-2.5 border-t border-slate-200 text-xs font-bold text-slate-700 flex items-center justify-between">
                   <span>{isBn ? 'লিস্টিং করুন →' : 'List flats →'}</span>
-                  <span>🚀</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
                 </div>
               </div>
 
             </div>
 
-            {/* Bottom Dismiss */}
+            {/* Bottom Skip */}
             <div className="text-center pt-2">
               <button
                 type="button"
@@ -410,13 +399,13 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
         )}
 
         {/* ---------------------------------------------------- */}
-        {/* VIEW 2: BROKER / OWNER REGISTRATION & LISTING FORM */}
+        {/* VIEW 2: BROKER / OWNER REGISTRATION FORM */}
         {/* ---------------------------------------------------- */}
         {currentView === 'broker' && (
           <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 scrollbar-thin">
             <div className="text-center space-y-0.5">
               <h3 className="text-lg font-black text-flatzy-navy font-poppins flex items-center justify-center gap-1.5">
-                <span className="text-xl">💼</span>
+                <Briefcase className="w-4 h-4 text-flatzy-navy" />
                 <span>{isBn ? 'পার্টনার ও লিস্টিং পোর্টাল' : 'Partner & Listing Portal'}</span>
               </h3>
               <p className="text-xs text-slate-500">
@@ -426,10 +415,10 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
 
             <form onSubmit={handleBrokerSubmit} className="space-y-3">
               
-              {/* Partner Type Toggle: Owner vs Broker */}
+              {/* Partner Type Toggle */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                  <span>🏷️</span>
+                  <Tag className="w-3.5 h-3.5 text-slate-500" />
                   <span>I am a *</span>
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -442,7 +431,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                         : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                     }`}
                   >
-                    <span>🏡</span>
+                    <Home className="w-3.5 h-3.5" />
                     <span>Property Owner</span>
                   </button>
                   <button
@@ -454,7 +443,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                         : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                     }`}
                   >
-                    <span>💼</span>
+                    <Briefcase className="w-3.5 h-3.5" />
                     <span>Real Estate Broker</span>
                   </button>
                 </div>
@@ -508,7 +497,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                   type="text"
                   value={brokerData.agencyName}
                   onChange={(e) => setBrokerData({ ...brokerData, agencyName: e.target.value })}
-                  placeholder={brokerData.brokerType === 'Owner' ? 'e.g. Greenwood Elements, New Town' : 'e.g. Sharma Realty Associates'}
+                  placeholder={brokerData.brokerType === 'Owner' ? 'e.g. Greenwood Elements, New Town' : 'e.g. Sharma Realty'}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow focus:bg-white transition-colors"
                 />
               </div>
@@ -578,14 +567,14 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
               {/* Notes / Current Vacancies */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                  <span>📝</span>
+                  <FileText className="w-3.5 h-3.5 text-slate-500" />
                   <span>Property Details / Current Vacancies (Optional)</span>
                 </label>
                 <input
                   type="text"
                   value={brokerData.notes}
                   onChange={(e) => setBrokerData({ ...brokerData, notes: e.target.value })}
-                  placeholder="e.g. 2 BHK semi-furnished in Action Area 1 available immediately for ₹18k"
+                  placeholder="e.g. 2 BHK semi-furnished in Action Area 1 available immediately"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow focus:bg-white transition-colors"
                 />
               </div>
@@ -601,7 +590,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                   <span>{isSubmitting ? 'Registering listing...' : 'Submit & Connect on WhatsApp'}</span>
                 </button>
                 <p className="text-[11px] text-slate-400 text-center mt-1.5">
-                  ⚡ Generates instant message & opens WhatsApp directly
+                  ⚡ Auto-saves your listing & opens WhatsApp
                 </p>
               </div>
 
@@ -610,17 +599,17 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
         )}
 
         {/* ---------------------------------------------------- */}
-        {/* VIEW 3: SIMPLIFIED BUYER / RENTER REQUIREMENT FORM */}
+        {/* VIEW 3: BUYER / RENTER REQUIREMENT FORM */}
         {/* ---------------------------------------------------- */}
         {currentView === 'buyer' && (
           <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 scrollbar-thin">
             <div className="text-center space-y-0.5">
               <h3 className="text-lg font-black text-flatzy-navy font-poppins flex items-center justify-center gap-1.5">
-                <span className="text-xl animate-pulse">📋</span>
+                <Home className="w-4 h-4 text-flatzy-navy" />
                 <span>{isBn ? 'আপনার পছন্দ জানান' : 'Your Flat Requirements'}</span>
               </h3>
               <p className="text-xs text-slate-500">
-                {isBn ? 'মাত্র কয়েকটি সাধারণ তথ্য দিন' : 'Fill details once — no more repetitive texting!'}
+                {isBn ? 'মাত্র কয়েকটি সাধারণ তথ্য দিন' : 'Quick details to connect directly on WhatsApp'}
               </p>
             </div>
 
@@ -679,10 +668,10 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                 />
               </div>
 
-              {/* Looking for (1bhk / 2bhk / 3bhk) */}
+              {/* Looking for (1 BHK / 2 BHK / 3 BHK) */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                  <span>🛏️</span>
+                  <Layers className="w-3.5 h-3.5 text-slate-500" />
                   <span>Looking for *</span>
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -697,17 +686,14 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                           : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
-                      <span>{bhk === '1 BHK' ? '🛋️' : bhk === '2 BHK' ? '🏠' : '🏰'}</span>
                       <span>{bhk}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Location & Budget in clean 2 columns */}
+              {/* Location & Budget */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                
-                {/* Location */}
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5 text-slate-500" />
@@ -718,20 +704,19 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                     onChange={(e) => setBuyerData({ ...buyerData, location: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow focus:bg-white transition-colors"
                   >
-                    <option value="New Town">📍 New Town</option>
-                    <option value="Rajarhat">📍 Rajarhat</option>
-                    <option value="Salt Lake">📍 Salt Lake</option>
-                    <option value="Sector V">📍 Sector V</option>
-                    <option value="Shapoorji">📍 Shapoorji</option>
-                    <option value="South Kolkata">📍 South Kolkata</option>
-                    <option value="Other Area">📍 Other Kolkata Area</option>
+                    <option value="New Town">New Town</option>
+                    <option value="Rajarhat">Rajarhat</option>
+                    <option value="Salt Lake">Salt Lake</option>
+                    <option value="Sector V">Sector V</option>
+                    <option value="Shapoorji">Shapoorji</option>
+                    <option value="South Kolkata">South Kolkata</option>
+                    <option value="Other Area">Other Kolkata Area</option>
                   </select>
                 </div>
 
-                {/* Budget */}
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                    <span>💰</span>
+                    <Coins className="w-3.5 h-3.5 text-slate-500" />
                     <span>Budget *</span>
                   </label>
                   <select
@@ -739,23 +724,20 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                     onChange={(e) => setBuyerData({ ...buyerData, budget: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow focus:bg-white transition-colors"
                   >
-                    <option value="Under ₹10,000">💰 Under ₹10,000</option>
-                    <option value="₹10,000 - ₹15,000">💰 ₹10,000 - ₹15,000</option>
-                    <option value="₹15,000 - ₹20,000">💰 ₹15,000 - ₹20,000</option>
-                    <option value="₹20,000 - ₹30,000">💰 ₹20,000 - ₹30,000</option>
-                    <option value="₹30,000+">💰 ₹30,000+</option>
+                    <option value="Under ₹10,000">Under ₹10,000</option>
+                    <option value="₹10,000 - ₹15,000">₹10,000 - ₹15,000</option>
+                    <option value="₹15,000 - ₹20,000">₹15,000 - ₹20,000</option>
+                    <option value="₹20,000 - ₹30,000">₹20,000 - ₹30,000</option>
+                    <option value="₹30,000+">₹30,000+</option>
                   </select>
                 </div>
-
               </div>
 
-              {/* Shifting Date & Family or Bachelor in clean 2 columns */}
+              {/* Shifting Date & Family or Bachelor */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                
-                {/* Planning for shifting from (date) */}
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                    <span>📅</span>
+                    <Calendar className="w-3.5 h-3.5 text-slate-500" />
                     <span>Expected Shifting Date</span>
                   </label>
                   <input
@@ -766,40 +748,38 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                   />
                 </div>
 
-                {/* Family or bachelor */}
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                    <span>👥</span>
+                    <Users className="w-3.5 h-3.5 text-slate-500" />
                     <span>Family or Bachelor *</span>
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => setBuyerData({ ...buyerData, tenantCategory: 'Family' })}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1 ${
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
                         buyerData.tenantCategory === 'Family'
                           ? 'bg-flatzy-navy text-flatzy-yellow border-flatzy-navy shadow-xs font-black'
                           : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
-                      <span>👨‍👩‍👧</span>
+                      <Users className="w-3.5 h-3.5" />
                       <span>Family</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setBuyerData({ ...buyerData, tenantCategory: 'Bachelor' })}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1 ${
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
                         buyerData.tenantCategory === 'Bachelor'
                           ? 'bg-flatzy-navy text-flatzy-yellow border-flatzy-navy shadow-xs font-black'
                           : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
-                      <span>🎒</span>
+                      <User className="w-3.5 h-3.5" />
                       <span>Bachelor</span>
                     </button>
                   </div>
                 </div>
-
               </div>
 
               {/* Submit CTA */}
@@ -810,10 +790,10 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                   className="w-full py-2.5 sm:py-3 rounded-xl bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-black text-xs sm:text-sm shadow-soft transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
-                  <span>{isSubmitting ? 'Matching flats...' : 'Submit & Connect on WhatsApp'}</span>
+                  <span>{isSubmitting ? 'Saving requirements...' : 'Submit & Connect on WhatsApp'}</span>
                 </button>
                 <p className="text-[11px] text-slate-400 text-center mt-1.5">
-                  ⚡ Auto-saves your requirements & opens WhatsApp chat
+                  ⚡ Auto-saves your requirements & opens WhatsApp
                 </p>
               </div>
 
@@ -822,12 +802,13 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
         )}
 
         {/* ---------------------------------------------------- */}
-        {/* VIEW 4: ENHANCED SUCCESS STATE WITH GENERATED TEXT PREVIEW */}
+        {/* VIEW 4: CLEAN SUCCESS STATE WITH ONLY "CONNECT IN WHATSAPP" */}
         {/* ---------------------------------------------------- */}
         {currentView === 'success' && (
           <div className="flex-1 overflow-y-auto p-5 sm:p-6 text-center space-y-4 my-auto scrollbar-thin">
-            <div className="text-4xl sm:text-5xl animate-bounce select-none">
-              🎉
+            {/* Celebration Icon with robust SVG */}
+            <div className="w-16 h-16 mx-auto rounded-3xl bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center shadow-soft">
+              <CheckCircle2 className="w-9 h-9 text-emerald-600 animate-bounce" />
             </div>
             
             <div className="space-y-1">
@@ -838,78 +819,52 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                     ? 'Listing Submitted Successfully!' 
                     : 'Requirements Saved!'}
               </h3>
-              <p className="text-xs text-slate-500 max-w-xs mx-auto">
+              <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
                 {submissionType === 'broker'
-                  ? `Thanks ${brokerData.fullName || 'partner'}! We've generated your listing partnership message.`
-                  : `Thanks ${buyerData.fullName || 'there'}! We've prepared your requirement card.`}
+                  ? `Thanks ${brokerData.fullName || 'partner'}! Your details have been recorded.`
+                  : `Thanks ${buyerData.fullName || 'there'}! Your requirements have been recorded.`}
               </p>
             </div>
 
-            {/* Generated Message Text Box */}
-            <div className="text-left bg-slate-900 text-slate-100 p-3.5 rounded-2xl border border-slate-800 shadow-inner relative group">
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-[11px] text-slate-400 font-mono">
-                <span>WhatsApp Message Card</span>
-                <button
-                  type="button"
-                  onClick={handleCopyText}
-                  className="flex items-center gap-1 text-flatzy-yellow hover:text-white transition-colors bg-white/10 hover:bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold"
-                >
-                  {hasCopied ? (
-                    <>
-                      <Check className="w-3 h-3 text-emerald-400" />
-                      <span className="text-emerald-400">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3 h-3" />
-                      <span>Copy Text</span>
-                    </>
-                  )}
-                </button>
+            {/* Structured Message Summary Card (NO copy button) */}
+            <div className="text-left bg-slate-900 text-slate-100 p-4 rounded-2xl border border-slate-800 shadow-inner">
+              <div className="flex items-center gap-1.5 pb-2 mb-2 border-b border-slate-800 text-[11px] text-slate-400 font-mono">
+                <Sparkles className="w-3.5 h-3.5 text-flatzy-yellow" />
+                <span>Generated WhatsApp Message</span>
               </div>
-              <pre className="text-[11px] font-mono whitespace-pre-wrap leading-relaxed text-slate-300 select-all max-h-40 overflow-y-auto scrollbar-thin pr-1">
+              <pre className="text-[11px] font-mono whitespace-pre-wrap leading-relaxed text-slate-200 select-all max-h-48 overflow-y-auto scrollbar-thin pr-1">
                 {generatedMessageText}
               </pre>
             </div>
 
-            {/* Actions */}
-            <div className="space-y-2 max-w-sm mx-auto pt-1">
+            {/* ONLY "Connect in WhatsApp" + simple Explore button */}
+            <div className="space-y-2.5 max-w-sm mx-auto pt-1">
+              <a
+                href={getWhatsAppUrl(generatedMessageText)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-soft transition-all flex items-center justify-center gap-2 active:scale-95"
+              >
+                <MessageSquare className="w-5 h-5 fill-white/20" />
+                <span>Connect in WhatsApp</span>
+              </a>
+
               <button
                 type="button"
-                onClick={() => openWhatsApp(generatedMessageText)}
-                className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-soft transition-all flex items-center justify-center gap-2 active:scale-95"
+                onClick={() => {
+                  onClose();
+                  if (submissionType === 'buyer' && onApplyFilters) {
+                    const matchedLoc = (['New Town', 'Rajarhat', 'Salt Lake', 'Sector V', 'Shapoorji'].includes(buyerData.location) 
+                      ? buyerData.location 
+                      : undefined) as LocationName | undefined;
+                    onApplyFilters(matchedLoc, undefined);
+                  }
+                }}
+                className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all flex items-center justify-center gap-1"
               >
-                <MessageSquare className="w-4 h-4" />
-                <span>Open WhatsApp Chat Again</span>
+                <span>Explore Flats</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
-
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={handleCopyText}
-                  className="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all flex items-center justify-center gap-1.5"
-                >
-                  {hasCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{hasCopied ? 'Copied!' : 'Copy Text'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    if (submissionType === 'buyer' && onApplyFilters) {
-                      const matchedLoc = (['New Town', 'Rajarhat', 'Salt Lake', 'Sector V', 'Shapoorji'].includes(buyerData.location) 
-                        ? buyerData.location 
-                        : undefined) as LocationName | undefined;
-                      onApplyFilters(matchedLoc, undefined);
-                    }
-                  }}
-                  className="py-2.5 rounded-xl bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-bold text-xs transition-all flex items-center justify-center gap-1"
-                >
-                  <span>Explore Flats</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
             </div>
           </div>
         )}
