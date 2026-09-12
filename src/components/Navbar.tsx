@@ -23,6 +23,7 @@ interface NavbarProps {
   savedCount: number;
   onOpenSavedDrawer: () => void;
   onOpenInquiryModal: () => void;
+  onOpenRoleModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -31,6 +32,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   savedCount,
   onOpenSavedDrawer,
   onOpenInquiryModal,
+  onOpenRoleModal,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -124,6 +126,17 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </button>
 
+          {/* Role selection trigger: Rent/Buy or Broker */}
+          {onOpenRoleModal && (
+            <button
+              onClick={onOpenRoleModal}
+              className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-200/80 transition-colors"
+              title="Switch role or submit requirement"
+            >
+              <span>Rent / Broker?</span>
+            </button>
+          )}
+
           {/* Primary CTA button: Enquire Flat (Desktop only - mobile uses bottom navbar) */}
           <button
             onClick={onOpenInquiryModal}
@@ -173,6 +186,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           })}
 
           <div className="pt-3 border-t border-slate-100 space-y-2.5">
+            {onOpenRoleModal && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenRoleModal();
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-slate-100 text-slate-800 font-bold text-xs border border-slate-200"
+              >
+                <span>🏡 Rent/Buy or 💼 Broker?</span>
+              </button>
+            )}
+
             <button
               onClick={() => {
                 setMobileMenuOpen(false);

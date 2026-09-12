@@ -13,6 +13,7 @@ import {
   Building
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { getWhatsAppUrl } from '../config/contact';
 
 interface AboutPageProps {
   onNavigate: (tab: string) => void;
@@ -83,7 +84,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
             Finding a rental home often means opening multiple websites, scrolling through endless outdated listings, messaging random contacts, and calling broker after broker.
           </p>
           <p>
-            <strong className="text-flatzy-navy font-black">Flatzy is built to simplify that journey.</strong> Whether you discover a flat through our Instagram Reels or search directly on our website, we help you get from:
+            <strong className="text-flatzy-navy font-black">Flatzy is built to simplify that journey.</strong> At Flatzy, we offer you the medium of verified local brokers or directly property owners.
           </p>
 
           {/* Quote Pill Highlight - Centered */}
@@ -97,8 +98,36 @@ export const AboutPage: React.FC<AboutPageProps> = ({
           </div>
 
           <p className="text-xs text-slate-500 pt-1">
-            No endless phone interrogation, no fake prices, and no middleman confusion.
+            Zero endless cold calls, transparent pricing, and instant connections.
           </p>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* PLATFORM SPOTLIGHT: THE ZOMATO/SWIGGY STYLE MEDIUM EXPLANATION */}
+        {/* ========================================================================= */}
+        <div className="bg-gradient-to-br from-white via-amber-50/50 to-white rounded-3xl p-6 sm:p-8 border-2 border-amber-200/90 shadow-soft max-w-2xl mx-auto text-left space-y-4">
+          <div className="flex items-center gap-3 pb-3 border-b border-amber-200/60">
+            <div className="w-11 h-11 rounded-2xl bg-flatzy-navy text-flatzy-yellow flex items-center justify-center text-xl shadow-xs shrink-0">
+              🤝
+            </div>
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-100 px-2 py-0.5 rounded-md">
+                Our Role as a Platform
+              </span>
+              <h2 className="text-base sm:text-lg font-black text-flatzy-navy font-poppins mt-0.5">
+                A Transparent Medium — Like Zomato & Swiggy for Kolkata Homes
+              </h2>
+            </div>
+          </div>
+
+          <div className="space-y-3 text-xs sm:text-sm text-slate-700 leading-relaxed">
+            <p>
+              At <strong>Flatzy</strong>, we offer you the medium of verified brokers or directly property owners.
+            </p>
+            <p>
+              Just like <strong>Zomato and Swiggy</strong> work by connecting you to restaurants without owning the kitchens, Flatzy acts as the reliable platform and middleman. We are <strong>not directly the dealers</strong> — our job is to curate verified flats, capture real room-by-room video walkthroughs, and connect you smoothly to the person holding the keys.
+            </p>
+          </div>
         </div>
 
         {/* Quick Action Buttons - Centered */}
@@ -233,7 +262,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
             </button>
 
             <a
-              href="https://wa.me/919830000000?text=Hi%20Flatzy!%20I%20am%20looking%20for%20a%20flat%20in%20Kolkata."
+              href={getWhatsAppUrl("Hi Flatzy! I am looking for a flat in Kolkata.")}
               target="_blank"
               rel="noopener noreferrer"
               className="px-7 py-3.5 rounded-full bg-white hover:bg-slate-50 text-flatzy-navy font-bold text-xs shadow-lg hover:shadow-xl transition-all inline-flex items-center gap-2 border border-slate-200/60"

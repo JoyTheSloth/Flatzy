@@ -3,6 +3,9 @@ import { MessageSquare, Instagram, Phone, Send, Sparkles, CheckCircle2 } from 'l
 import confetti from 'canvas-confetti';
 import { useLanguage } from '../context/LanguageContext';
 
+import { submitLeadToGoogleSheet } from '../services/leadService';
+import { getWhatsAppUrl, FLATZY_WHATSAPP_NUMBER } from '../config/contact';
+
 interface ContactPageProps {
   onNavigate: (tab: string) => void;
 }
@@ -20,27 +23,39 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-      try {
-        confetti({
-          particleCount: 70,
-          spread: 60,
-          origin: { y: 0.6 },
-          colors: ['#FFC800', '#FF5722', '#0B132B', '#10B981']
-        });
-      } catch (err) {}
-    }, 500);
+    await submitLeadToGoogleSheet({
+      fullName: formData.name,
+      phone: formData.phone,
+      location: formData.location,
+      budget: formData.budget,
+      tenantCategory: 'Direct Contact Form',
+      role: 'Renter',
+      source: 'Contact Us Page',
+      brokerNote: formData.message,
+    });
+
+    setIsSubmitting(false);
+    setIsSubmitted(true);
+
+    handleWhatsApp();
+
+    try {
+      confetti({
+        particleCount: 70,
+        spread: 60,
+        origin: { y: 0.6 },
+        colors: ['#FFC800', '#FF5722', '#0B132B', '#10B981']
+      });
+    } catch (err) {}
   };
 
   const handleWhatsApp = () => {
-    const text = `Hi Flatzy! My name is ${formData.name || 'a renter'}. Looking for a flat in ${formData.location} around ${formData.budget}. Can you connect me with a broker?`;
-    window.open(`https://wa.me/919830000000?text=${encodeURIComponent(text)}`, '_blank');
+    const text = `🏠 *CONTACT INQUIRY — FLATZY KOLKATA*\n━━━━━━━━━━━━━━━━━━━━━━\n👤 *Name:* ${formData.name || 'Visitor'}\n📱 *Phone:* ${formData.phone || 'N/A'}\n📍 *Location:* ${formData.location}\n💰 *Budget:* ${formData.budget}\n${formData.message ? `📝 *Message:* ${formData.message}\n` : ''}━━━━━━━━━━━━━━━━━━━━━━\nPlease connect me with verified flat options!`;
+    window.open(getWhatsAppUrl(text), '_blank', 'noopener,noreferrer');
   };
 
   return (

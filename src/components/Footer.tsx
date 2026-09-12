@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import type { LocationName } from '../types/property';
 import { useLanguage } from '../context/LanguageContext';
+import { getWhatsAppUrl } from '../config/contact';
 
 interface FooterProps {
   onNavigate: (tab: string, extra?: any) => void;
@@ -69,7 +70,7 @@ export const Footer: React.FC<FooterProps> = ({
             {/* Quick Contact Buttons Row */}
             <div className="flex items-center gap-2 pt-1">
               <a
-                href="https://wa.me/919830000000?text=Hi%20Flatzy!%20I%20am%20looking%20for%20a%20rental%20flat%20in%20Kolkata"
+                href={getWhatsAppUrl("Hi Flatzy! I am looking for a rental flat in Kolkata")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 py-2 px-3 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
@@ -209,7 +210,7 @@ export const Footer: React.FC<FooterProps> = ({
               </a>
 
               <a
-                href="https://wa.me/919830000000?text=Hi%20Flatzy!%20I%20am%20looking%20for%20a%20rental%20flat%20in%20Kolkata"
+                href={getWhatsAppUrl("Hi Flatzy! I am looking for a rental flat in Kolkata")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/30 text-emerald-300 text-xs font-semibold shadow-xs hover:scale-105 transition-all"

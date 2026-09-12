@@ -14,6 +14,9 @@ import {
 import confetti from 'canvas-confetti';
 import { useLanguage } from '../context/LanguageContext';
 
+import { submitLeadToGoogleSheet } from '../services/leadService';
+import { FLATZY_WHATSAPP_NUMBER } from '../config/contact';
+
 interface InquiryModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -31,6 +34,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
 }) => {
   const { language } = useLanguage();
   const isBn = language === 'bn';
+  const whatsappNumber = FLATZY_WHATSAPP_NUMBER;
 
   const [formData, setFormData] = useState<InquiryFormData>({
     propertyId: selectedProperty?.id || '',
@@ -51,34 +55,72 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    // Simulate instant backend submission
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-
-      // Trigger celebratory confetti
-      try {
-        confetti({
-          particleCount: 60,
-          spread: 60,
-          origin: { y: 0.6 },
-          colors: ['#FFC800', '#FF5722', '#0B132B', '#10B981']
-        });
-      } catch (err) {
-        // Safe fallback if canvas not available
-      }
-    }, 500);
+  const buildWhatsAppText = () => {
+    return selectedProperty 
+      ? `🏠 *PROPERTY INQUIRY — FLATZY KOLKATA*\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `📍 *Property:* ${selectedProperty.title}\n` +
+        `🔑 *Ref Code:* #${selectedProperty.brokerReferenceId}\n` +
+        `📍 *Location:* ${selectedProperty.subLocation}, ${selectedProperty.location}\n` +
+        `💰 *Rent:* ₹${selectedProperty.monthlyRent.toLocaleString('en-IN')}/month\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `👤 *Name:* ${formData.fullName || 'Tenant'}\n` +
+        `📱 *WhatsApp:* +91 ${formData.phone}\n` +
+        `📅 *Move-in:* ${formData.preferredMoveInDate}\n` +
+        `👥 *Tenant Type:* ${formData.tenantType}\n` +
+        (formData.message ? `📝 *Note:* ${formData.message}\n` : '') +
+        `━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `Please arrange a site visit or connect me with the broker!`
+      : `🏠 *FLAT SEARCH INQUIRY — FLATZY KOLKATA*\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `👤 *Name:* ${formData.fullName || 'Tenant'}\n` +
+        `📱 *WhatsApp:* +91 ${formData.phone}\n` +
+        `📍 *Preferred Area:* ${formData.preferredLocation || 'Kolkata'}\n` +
+        `📅 *Move-in Timeline:* ${formData.preferredMoveInDate}\n` +
+        `👥 *Tenant Type:* ${formData.tenantType}\n` +
+        (formData.message ? `📝 *Note:* ${formData.message}\n` : '') +
+        `━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `Please share verified flats matching these details!`;
   };
 
   const handleWhatsAppDirect = () => {
-    const text = selectedProperty 
-      ? `Hi Flatzy team! I am interested in visiting: *${selectedProperty.title}* (${selectedProperty.brokerReferenceId}) at ${selectedProperty.subLocation}, ${selectedProperty.location} for ₹${selectedProperty.monthlyRent.toLocaleString('en-IN')}/mo.\n\nMy name is ${formData.fullName || 'a renter'}${formData.phone ? ` (${formData.phone})` : ''}. Can you connect me with the broker?`
-      : `Hi Flatzy! I am looking for a rental flat in Kolkata.\n\nMy name is ${formData.fullName || 'a renter'}${formData.phone ? ` (${formData.phone})` : ''}.\nPreferred Location: ${formData.preferredLocation || 'Kolkata'}\nMove-in: ${formData.preferredMoveInDate}\nTenant Type: ${formData.tenantType}.\n\nPlease connect me with verified options!`;
-    window.open(`https://wa.me/919830000000?text=${encodeURIComponent(text)}`, '_blank');
+    const text = buildWhatsAppText();
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    // Save lead to Google Sheets & localStorage
+    await submitLeadToGoogleSheet({
+      fullName: formData.fullName,
+      phone: formData.phone,
+      lookingForBhk: selectedProperty?.bhkType || 'Rental Flat',
+      budget: selectedProperty ? `₹${selectedProperty.monthlyRent}/mo` : 'Rental Search',
+      location: selectedProperty?.location || formData.preferredLocation,
+      shiftingDate: formData.preferredMoveInDate,
+      tenantCategory: formData.tenantType,
+      role: 'Renter',
+      brokerNote: formData.message || (selectedProperty ? `Property ID: ${selectedProperty.id}` : undefined),
+      source: selectedProperty ? `Property Detail (#${selectedProperty.brokerReferenceId})` : 'General Inquiry Modal'
+    });
+
+    setIsSubmitting(false);
+    setIsSubmitted(true);
+
+    // Auto-launch WhatsApp directly
+    handleWhatsAppDirect();
+
+    // Trigger celebratory confetti
+    try {
+      confetti({
+        particleCount: 60,
+        spread: 60,
+        origin: { y: 0.6 },
+        colors: ['#FFC800', '#FF5722', '#0B132B', '#10B981']
+      });
+    } catch (err) {}
   };
 
   return (

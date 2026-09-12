@@ -9,6 +9,7 @@ import {
   Clock, 
   CheckCircle2 
 } from 'lucide-react';
+import { getWhatsAppUrl } from '../config/contact';
 
 interface ReelDiscoveryPageProps {
   onSelectProperty: (property: Property) => void;
@@ -110,7 +111,7 @@ export const ReelDiscoveryPage: React.FC<ReelDiscoveryPageProps> = ({
 
                 <div className="space-y-2.5 pt-1">
                   <a
-                    href="https://wa.me/919830000000?text=Hi%20Flatzy!%20Can%20you%20share%20or%20shoot%20a%20video%20tour%20for%20a%20flat%20in%20Kolkata?"
+                    href={getWhatsAppUrl("Hi Flatzy! Can you share or shoot a video tour for a flat in Kolkata?")}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full py-3 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-md"

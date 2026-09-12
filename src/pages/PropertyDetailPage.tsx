@@ -24,6 +24,7 @@ import {
   Mail
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { getWhatsAppUrl } from '../config/contact';
 
 interface PropertyDetailPageProps {
   property: Property;
@@ -116,7 +117,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
 
   const handleWhatsApp = () => {
     const text = `Hi Flatzy! I am interested in flat: ${property.title} (${property.brokerReferenceId}) at ${property.subLocation} (${property.location}) for ${formatCurrency(property.monthlyRent)}/mo. My name is ${fullName || 'a renter'}. Please connect me with the broker.`;
-    window.open(`https://wa.me/919830000000?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(getWhatsAppUrl(text), '_blank', 'noopener,noreferrer');
   };
 
   return (

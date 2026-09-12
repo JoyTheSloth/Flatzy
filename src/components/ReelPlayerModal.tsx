@@ -20,6 +20,7 @@ import {
   MapPin,
   ShieldCheck
 } from 'lucide-react';
+import { getWhatsAppUrl } from '../config/contact';
 
 interface ReelPlayerModalProps {
   reels: FlatReelVideo[];
@@ -504,7 +505,7 @@ export const ReelPlayerModal: React.FC<ReelPlayerModalProps> = ({
 
             {/* WhatsApp Direct Chat */}
             <a
-              href={`https://wa.me/919830000000?text=Hi%20Flatzy!%20I%20am%20watching%20the%20video%20tour%20for%20${encodeURIComponent(activeReel.title)}%20(₹${activeReel.monthlyRent}/mo).%20Please%20connect%20me.`}
+              href={getWhatsAppUrl(`Hi Flatzy! I am watching the video tour for ${activeReel.title} (₹${activeReel.monthlyRent}/mo). Please connect me.`)}
               target="_blank"
               rel="noopener noreferrer"
               className="col-span-3 py-2 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center justify-center gap-1 transition-colors shadow-xs"

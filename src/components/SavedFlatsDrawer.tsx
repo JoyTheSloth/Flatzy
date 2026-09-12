@@ -14,6 +14,7 @@ import {
   Tag
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { getWhatsAppUrl } from '../config/contact';
 
 interface SavedFlatsDrawerProps {
   isOpen: boolean;
@@ -46,7 +47,7 @@ export const SavedFlatsDrawer: React.FC<SavedFlatsDrawerProps> = ({
 
   const handleWhatsAppSingle = (property: Property) => {
     const text = `Hi Flatzy! I am interested in visiting this flat saved in my Flatzy wishlist:\n\n*${property.title}*\nRef ID: ${property.brokerReferenceId}\nLocation: ${property.subLocation}, ${property.location}\nRent: ₹${property.monthlyRent.toLocaleString('en-IN')}/month\nDeposit: ₹${(property.securityDeposit || property.monthlyRent * 2).toLocaleString('en-IN')}\n\nPlease share the verified broker contact and schedule a visit!`;
-    window.open(`https://wa.me/919830000000?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(getWhatsAppUrl(text), '_blank', 'noopener,noreferrer');
   };
 
   const handleWhatsAppAll = () => {
@@ -55,7 +56,7 @@ export const SavedFlatsDrawer: React.FC<SavedFlatsDrawerProps> = ({
       .map((p, i) => `${i + 1}. *${p.title}* (${p.brokerReferenceId}) - ₹${p.monthlyRent.toLocaleString('en-IN')}/mo at ${p.subLocation}`)
       .join('\n');
     const text = `Hi Flatzy Kolkata! I have shortlisted these ${savedProperties.length} flats on my Flatzy wishlist:\n\n${summary}\n\nCombined Monthly Rent: ₹${totalMonthlyRent.toLocaleString('en-IN')}/mo\n\nCan you connect me with the brokers to schedule visits together?`;
-    window.open(`https://wa.me/919830000000?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(getWhatsAppUrl(text), '_blank', 'noopener,noreferrer');
   };
 
   return (

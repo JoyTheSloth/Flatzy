@@ -4,6 +4,7 @@ import { PROPERTIES_DATA } from './data/properties';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { InquiryModal } from './components/InquiryModal';
+import { RoleSelectionModal } from './components/RoleSelectionModal';
 import { SavedFlatsDrawer } from './components/SavedFlatsDrawer';
 import { MobileBottomCTA } from './components/MobileBottomCTA';
 
@@ -31,6 +32,7 @@ export function App() {
   const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
   const [inquiryTargetProperty, setInquiryTargetProperty] = useState<Property | null>(null);
   const [isSavedDrawerOpen, setIsSavedDrawerOpen] = useState(false);
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(true);
 
   // Quick filter presets for Explore page
   const [exploreFilterPreset, setExploreFilterPreset] = useState<Partial<FilterState>>({});
@@ -119,6 +121,7 @@ export function App() {
         savedCount={savedPropertyIds.length}
         onOpenSavedDrawer={() => setIsSavedDrawerOpen(true)}
         onOpenInquiryModal={() => handleOpenInquiryModal(selectedProperty || undefined)}
+        onOpenRoleModal={() => setIsRoleModalOpen(true)}
       />
 
       {/* Main View Area */}
@@ -196,6 +199,16 @@ export function App() {
         onNavigate={navigateTo}
         onSelectLocation={(loc) => handleApplyQuickFilter(loc)}
         onOpenInquiryModal={() => handleOpenInquiryModal()}
+      />
+
+      {/* Onboarding Role & Requirement Modal (Buyer/Renter vs Broker) */}
+      <RoleSelectionModal
+        isOpen={isRoleModalOpen}
+        onClose={() => setIsRoleModalOpen(false)}
+        onApplyFilters={(loc, budget) => {
+          setIsRoleModalOpen(false);
+          handleApplyQuickFilter(loc, budget);
+        }}
       />
 
       {/* Inquiry Lead Capture Modal */}

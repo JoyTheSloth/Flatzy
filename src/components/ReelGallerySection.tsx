@@ -20,6 +20,7 @@ import {
   X
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { getWhatsAppUrl } from '../config/contact';
 
 interface ReelGallerySectionProps {
   onSelectProperty: (property: Property) => void;
@@ -113,7 +114,7 @@ export const ReelGallerySection: React.FC<ReelGallerySectionProps> = ({
             </a>
 
             <a
-              href="https://wa.me/919830000000?text=Hi%20Flatzy!%20I%20am%20looking%20for%20a%20flat%20video%20tour%20in%20Kolkata."
+              href={getWhatsAppUrl("Hi Flatzy! I am looking for a flat video tour in Kolkata.")}
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-1.5"
