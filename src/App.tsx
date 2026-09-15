@@ -6,6 +6,7 @@ import { Footer } from './components/Footer';
 import { RoleSelectionModal } from './components/RoleSelectionModal';
 import { SavedFlatsDrawer } from './components/SavedFlatsDrawer';
 import { MobileBottomCTA } from './components/MobileBottomCTA';
+import { Analytics } from '@vercel/analytics/react';
 
 import { HomePage } from './pages/HomePage';
 import { ExplorePage } from './pages/ExplorePage';
@@ -235,6 +236,9 @@ export function App() {
         savedCount={savedPropertyIds.length}
         onOpenSavedDrawer={() => setIsSavedDrawerOpen(true)}
       />
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
 
     </div>
   );
