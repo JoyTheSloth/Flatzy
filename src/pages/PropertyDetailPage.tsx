@@ -21,10 +21,19 @@ import {
   Briefcase,
   X,
   Copy,
-  Mail
+  Mail,
+  Calendar,
+  ChevronRight,
+  Maximize2,
+  Zap,
+  Droplets,
+  Wind
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { getWhatsAppUrl } from '../config/contact';
+import { PictureViewModal } from '../components/PictureViewModal';
+import { WhatsAppIcon } from '../components/WhatsAppIcon';
+import { useLanguage } from '../context/LanguageContext';
 
 interface PropertyDetailPageProps {
   property: Property;
@@ -33,6 +42,7 @@ interface PropertyDetailPageProps {
   onToggleSave: (id: string) => void;
   onOpenInquiryModal: (property: Property) => void;
   onSelectProperty: (property: Property) => void;
+  onOpenScheduleVisit?: (property: Property) => void;
 }
 
 export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
@@ -42,11 +52,14 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
   onToggleSave,
   onOpenInquiryModal,
   onSelectProperty,
+  onOpenScheduleVisit,
 }) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isPictureViewOpen, setIsPictureViewOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [wishlistToast, setWishlistToast] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   // Embedded form state inside the CTA panel
   const [fullName, setFullName] = useState('');
@@ -116,7 +129,13 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
   };
 
   const handleWhatsApp = () => {
-    const text = `Hi Flatzy! I am interested in flat: ${property.title} (${property.brokerReferenceId}) at ${property.subLocation} (${property.location}) for ${formatCurrency(property.monthlyRent)}/mo. My name is ${fullName || 'a renter'}. Please connect me with the broker.`;
+    let pricingStr = `${formatCurrency(property.monthlyRent)}/mo`;
+    if (property.listingType === 'sale' && property.salePrice) {
+      pricingStr = `Sale (₹${property.salePrice >= 10000000 ? (property.salePrice / 10000000).toFixed(2) + ' Cr' : (property.salePrice / 100000).toFixed(0) + ' Lacs'})`;
+    } else if (property.salePrice) {
+      pricingStr = `Rent (${formatCurrency(property.monthlyRent)}/mo) or Sale (₹${(property.salePrice / 10000000).toFixed(2)} Cr)`;
+    }
+    const text = `Hi Flatzy! I am interested in flat: ${property.title} (${property.brokerReferenceId}) at ${property.subLocation} (${property.location}) for ${pricingStr}. My name is ${fullName || 'a client'}. Please connect me with the broker.`;
     window.open(getWhatsAppUrl(text), '_blank', 'noopener,noreferrer');
   };
 
@@ -131,7 +150,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
         </div>
       )}
 
-      {/* Top Navigation & Action Bar */}
+      {/* Top Navigation Bar */}
       <div className="flex items-center justify-between gap-4 pb-2 border-b border-slate-200/70">
         <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
           <button
@@ -145,30 +164,6 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
           <span className="hidden sm:inline text-slate-500">{property.location}</span>
           <span className="hidden sm:inline text-slate-300">/</span>
           <span className="hidden sm:inline text-flatzy-navy font-bold truncate max-w-[200px]">{property.subLocation}</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsShareModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 shadow-xs transition-colors text-xs font-semibold"
-            title="Share listing"
-          >
-            <Share2 className="w-3.5 h-3.5" />
-            <span>Share</span>
-          </button>
-
-          <button
-            onClick={handleToggleWishlist}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border shadow-xs transition-all text-xs font-semibold ${
-              isSaved
-                ? 'bg-flatzy-coral border-flatzy-coral text-white'
-                : 'bg-white border-slate-200 text-slate-700 hover:text-flatzy-coral'
-            }`}
-            title={isSaved ? 'Remove from wishlist' : 'Save to wishlist'}
-          >
-            <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-white' : ''}`} />
-            <span>{isSaved ? 'Saved' : 'Wishlist'}</span>
-          </button>
         </div>
       </div>
 
@@ -208,8 +203,12 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
               </div>
             )}
 
-            {/* Main Stage Image */}
-            <div className="relative flex-1 aspect-[4/3] w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-900 border border-slate-200 shadow-soft-lg group">
+            {/* Main Stage Image - Click opens Full Picture View */}
+            <div 
+              onClick={() => setIsPictureViewOpen(true)}
+              className="relative flex-1 aspect-[4/3] w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-900 border border-slate-200 shadow-soft-lg group cursor-pointer"
+              title="Click for full picture view (16:9 / native)"
+            >
               <img
                 src={property.images[selectedImageIndex] || property.featuredImage}
                 alt={property.title}
@@ -217,7 +216,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
               />
 
               {/* Status Badges Overlay */}
-              <div className="absolute top-3.5 left-3.5 flex flex-wrap gap-2">
+              <div className="absolute top-3.5 left-3.5 flex flex-wrap gap-2 pointer-events-none">
                 <span className="px-3 py-1 rounded-full bg-flatzy-yellow text-flatzy-navy text-xs font-black uppercase tracking-wider shadow-md">
                   {property.availableFrom}
                 </span>
@@ -226,9 +225,46 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                 </span>
               </div>
 
-              {/* Photo counter */}
-              <div className="absolute bottom-3.5 right-3.5 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-semibold">
-                {selectedImageIndex + 1} / {property.images.length} Photos
+              {/* Flipkart-style Floating Action Icons (Share & Wishlist) directly on photo */}
+              <div 
+                className="absolute top-3.5 right-3.5 flex items-center gap-2 z-10"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsShareModalOpen(true);
+                  }}
+                  className="p-2 sm:p-2.5 rounded-full bg-white/90 hover:bg-white text-slate-700 hover:text-flatzy-navy shadow-md backdrop-blur-md active:scale-90 transition-all cursor-pointer"
+                  title="Share listing"
+                  aria-label="Share listing"
+                >
+                  <Share2 className="w-4 h-4" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleWishlist();
+                  }}
+                  className={`p-2 sm:p-2.5 rounded-full shadow-md backdrop-blur-md active:scale-90 transition-all cursor-pointer ${
+                    isSaved 
+                      ? 'bg-flatzy-coral text-white' 
+                      : 'bg-white/90 hover:bg-white text-slate-700 hover:text-flatzy-coral'
+                  }`}
+                  title={isSaved ? 'Remove from wishlist' : 'Save to wishlist'}
+                  aria-label="Save flat"
+                >
+                  <Heart className={`w-4 h-4 ${isSaved ? 'fill-white' : ''}`} />
+                </button>
+              </div>
+
+              {/* Photo counter & Enlarge Tag */}
+              <div className="absolute bottom-3.5 right-3.5 bg-black/70 hover:bg-black/90 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-md transition-all group-hover:scale-105">
+                <Maximize2 className="w-3.5 h-3.5 text-flatzy-yellow" />
+                <span>{selectedImageIndex + 1} / {property.images.length} Photos</span>
               </div>
             </div>
 
@@ -245,13 +281,13 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
             </span>
           </div>
 
-          {/* Quick WhatsApp Link directly under gallery on desktop */}
+          {/* Connect with Broker WhatsApp link directly under gallery on desktop */}
           <button
             onClick={handleWhatsApp}
-            className="w-full py-3 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-200 shadow-xs transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-2xl bg-[#25D366]/10 hover:bg-[#25D366]/20 text-emerald-900 font-bold text-xs border border-emerald-300 shadow-xs transition-all flex items-center justify-center gap-2"
           >
-            <MessageSquare className="w-4 h-4 text-emerald-600" />
-            <span>Chat on WhatsApp regarding this flat</span>
+            <WhatsAppIcon className="w-4 h-4" />
+            <span>{t('detail.connectWhatsApp')}</span>
           </button>
 
         </div>
@@ -282,34 +318,130 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
               <span>{property.address}</span>
             </div>
 
-            {/* Rent & Deposit Hero Box */}
-            <div className="p-5 rounded-2xl bg-amber-50/80 border border-flatzy-yellow/50 flex flex-wrap items-baseline justify-between gap-4 mt-4 shadow-xs">
-              <div>
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                  Monthly Rent
-                </span>
-                <div className="flex items-baseline gap-1 mt-0.5">
-                  <span className="text-3xl sm:text-4xl font-black text-flatzy-navy font-poppins">
-                    {formatCurrency(property.monthlyRent)}
+            {/* Rent & Deposit / Dual Deal / Sale Deal Hero Box */}
+            {property.listingType === 'sale' ? (
+              <div className="mt-4 rounded-2xl overflow-hidden border-2 border-rose-200 bg-white shadow-sm">
+                <div className="bg-gradient-to-r from-rose-800 via-rose-700 to-amber-700 px-4 py-2.5 flex items-center justify-between text-white">
+                  <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider">
+                    <span>🔥 LIMITED OFFER — FOR SALE</span>
+                  </div>
+                  <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-white/20">
+                    Ready to Move
                   </span>
-                  <span className="text-xs font-semibold text-slate-600">/month</span>
                 </div>
-              </div>
 
-              <div className="text-right">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                  Security Deposit
-                </span>
-                <span className="text-lg sm:text-xl font-bold text-slate-800 font-poppins">
-                  {formatCurrency(property.securityDeposit)}
-                </span>
-                {property.maintenanceCharges !== undefined && (
-                  <div className="text-[11px] text-slate-500 mt-0.5">
-                    + {formatCurrency(property.maintenanceCharges)} maintenance
+                <div className="p-5 flex flex-wrap items-baseline justify-between gap-4">
+                  <div>
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                      Total Sale Price
+                    </span>
+                    <div className="flex items-baseline gap-2 mt-0.5">
+                      <span className="text-3xl sm:text-4xl font-black text-rose-700 font-poppins">
+                        ₹{property.salePrice && property.salePrice >= 10000000 ? `${(property.salePrice / 10000000).toFixed(2)} Cr` : `${((property.salePrice || 8500000) / 100000).toFixed(0)} Lacs`}
+                      </span>
+                      <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                        Best Deal in Newtown
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                      Possession & Parking
+                    </span>
+                    <span className="text-sm sm:text-base font-black text-slate-800 font-poppins">
+                      Immediate • Car Parking Included
+                    </span>
+                  </div>
+                </div>
+
+                {property.saleTerms && (
+                  <div className="px-5 pb-4">
+                    <p className="text-xs font-medium text-slate-700 bg-rose-50/70 p-3 rounded-xl border border-rose-100">
+                      ⚡ <strong>Sale Details:</strong> {property.saleTerms}
+                    </p>
                   </div>
                 )}
               </div>
-            </div>
+            ) : property.listingType === 'both' ? (
+              <div className="mt-4 rounded-2xl overflow-hidden border-2 border-purple-200 bg-white shadow-sm">
+                <div className="bg-gradient-to-r from-purple-800 to-indigo-900 px-4 py-2 flex items-center justify-between text-white">
+                  <div className="flex items-center gap-2 font-bold text-xs">
+                    <Sparkles className="w-4 h-4 text-flatzy-yellow" />
+                    <span>DUAL OPTION: AVAILABLE FOR RENT OR DIRECT SALE</span>
+                  </div>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-white/20">
+                    Negotiable
+                  </span>
+                </div>
+
+                <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+                  {/* Rent Option */}
+                  <div className="space-y-1.5 md:pr-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase text-emerald-800 tracking-wider flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                        Option 1: For Rent
+                      </span>
+                      <span className="text-[11px] font-bold text-slate-500">2 Months Deposit</span>
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-black text-flatzy-navy font-poppins">
+                        {formatCurrency(property.monthlyRent)}
+                      </span>
+                      <span className="text-xs font-semibold text-slate-600">/month</span>
+                      <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full ml-1.5">Negotiable</span>
+                    </div>
+                    <p className="text-xs font-medium text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-100 leading-relaxed">
+                      ✨ <strong>Rent Terms:</strong> All luxury furnitures, fixtures & appliances will be given.
+                    </p>
+                  </div>
+
+                  {/* Sale Option */}
+                  <div className="space-y-1.5 pt-3 md:pt-0 md:pl-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase text-purple-800 tracking-wider flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-purple-600 inline-block"></span>
+                        Option 2: For Sale
+                      </span>
+                      <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">Immediate Handover</span>
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-black text-purple-900 font-poppins">
+                        ₹{(property.salePrice! / 10000000).toFixed(2)} Cr
+                      </span>
+                      <span className="text-[11px] font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full ml-1.5">Negotiable</span>
+                    </div>
+                    <p className="text-xs font-medium text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-100 leading-relaxed">
+                      🔑 <strong>Sale Terms:</strong> Movable furnitures & appliances will not be given. Reserved podium parking included.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-5 rounded-2xl bg-amber-50/80 border border-flatzy-yellow/50 flex flex-wrap items-baseline justify-between gap-4 mt-4 shadow-xs">
+                <div>
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                    Monthly Rent
+                  </span>
+                  <div className="flex items-baseline gap-1 mt-0.5">
+                    <span className="text-3xl sm:text-4xl font-black text-flatzy-navy font-poppins">
+                      {formatCurrency(property.monthlyRent)}
+                    </span>
+                    <span className="text-xs font-semibold text-slate-600">{t('detail.perMonth')}</span>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                    {t('detail.secDeposit')}
+                  </span>
+                  <span className="text-lg sm:text-xl font-black text-slate-800 font-poppins">
+                    2 Months Deposit
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Fast Action Buttons at first glance */}
             <div className="pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -318,15 +450,15 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                 className="w-full py-3.5 rounded-full bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-black text-xs uppercase tracking-wider shadow-md hover:shadow-yellow-glow transition-all active:scale-95 flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
-                <span>Enquire Flat</span>
+                <span>{t('detail.inquireNow')}</span>
               </button>
 
               <button
                 onClick={handleWhatsApp}
-                className="w-full py-3.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-full bg-[#25D366] hover:bg-[#1EBE5D] text-white font-black text-xs uppercase tracking-wider shadow-md hover:shadow-soft-lg transition-all active:scale-95 flex items-center justify-center gap-2"
               >
-                <MessageSquare className="w-4 h-4 text-emerald-400" />
-                <span>Quick WhatsApp Ping</span>
+                <WhatsAppIcon className="w-4 h-4" />
+                <span>{t('detail.connectWhatsApp')}</span>
               </button>
             </div>
           </div>
@@ -406,7 +538,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
           {/* SECTION 2: AMENITIES */}
           <div className="space-y-4">
             <h3 className="text-base sm:text-lg font-black text-flatzy-navy font-poppins uppercase tracking-wider">
-              Amenities & Features
+              {t('detail.amenities')}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {property.amenities.map((amenity, i) => (
@@ -424,7 +556,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
           {/* SECTION 3: NEARBY PLACES */}
           <div className="space-y-4">
             <h3 className="text-base sm:text-lg font-black text-flatzy-navy font-poppins uppercase tracking-wider">
-              Nearby Places & Connectivity
+              {t('detail.nearbyTransit')}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {property.nearbyLandmarks.map((landmark, idx) => (
@@ -447,13 +579,86 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
             </div>
           </div>
 
-          {/* SECTION 4: RENTAL DETAILS */}
+          {/* SECTION 4: FLATZY MOVE-IN READY GUARANTEE */}
+          <div className="bg-gradient-to-br from-emerald-500/10 via-white to-amber-500/5 rounded-3xl p-6 sm:p-7 border border-emerald-200/80 shadow-soft space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-xs">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-flatzy-navy font-poppins">
+                    Flatzy Move-in Ready Guarantee
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Pre-inspected, cleaned & serviced before your key handover
+                  </p>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black uppercase tracking-wider border border-emerald-300">
+                100% Handover Assured
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div className="p-3.5 rounded-2xl bg-white border border-emerald-100 shadow-2xs flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-amber-50 text-amber-600 shrink-0">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Full Room Deep Cleaned</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                    Bedrooms, living area, kitchen slabs, and bathrooms are thoroughly deep-cleaned and sanitized before move-in.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-white border border-emerald-100 shadow-2xs flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-sky-50 text-sky-600 shrink-0">
+                  <Wind className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">AC Servicing & Filter Cleaning</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                    Air conditioning cooling performance is tested and AC air filters are freshly washed and serviced.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-white border border-emerald-100 shadow-2xs flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-amber-50 text-amber-600 shrink-0">
+                  <Zap className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Tubelights, Bulbs & Electricals Checked</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                    All tubelights, LED bulbs, switchboards, sockets, and appliance wirings are checked and verified working.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-white border border-emerald-100 shadow-2xs flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 shrink-0">
+                  <Droplets className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Water Pipeline & Filter Inspection</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                    Water supply, pipelines, taps, and bathroom fixtures are pre-tested for optimal pressure with zero leakages.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 5: RENTAL DETAILS */}
           <div className="p-5 rounded-2xl bg-white border border-slate-200/80 text-xs text-slate-600 space-y-2">
             <h3 className="text-xs font-black uppercase tracking-wider text-flatzy-navy">
               Rental Terms & Agreement
             </h3>
             <p>• Standard 11-month registered rental agreement with renewal option.</p>
-            <p>• Security deposit refundable upon vacating as per standard Kolkata tenancy guidelines.</p>
+            <p>• 2 months security deposit, refundable upon vacating as per standard Kolkata tenancy guidelines.</p>
+            <p>• Flat handover includes full deep clean, electrical fixture verification, and AC inspection.</p>
             <p>• Electricity & Wi-Fi bills are billed separately as per actual sub-meter reading.</p>
           </div>
 
@@ -490,8 +695,8 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                     onClick={handleWhatsApp}
                     className="w-full py-2.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs border border-emerald-200 transition-colors flex items-center justify-center gap-2"
                   >
-                    <MessageSquare className="w-4 h-4 text-emerald-600" />
-                    <span>Ping on WhatsApp for Faster Reply</span>
+                    <WhatsAppIcon className="w-4 h-4" />
+                    <span>Connect with Broker on WhatsApp</span>
                   </button>
                 </div>
               </div>
@@ -510,7 +715,32 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                   </p>
                 </div>
 
-                <form onSubmit={handleInquirySubmit} className="pt-4 space-y-3.5">
+                {/* Instant Slot Booking Highlight CTA */}
+                {onOpenScheduleVisit && (
+                  <div className="pt-4 pb-1">
+                    <button
+                      type="button"
+                      onClick={() => onOpenScheduleVisit(property)}
+                      className="w-full p-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-soft transition-all flex items-center justify-between group hover:scale-[1.01]"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                          <Calendar className="w-4 h-4" />
+                        </div>
+                        <div className="text-left leading-tight">
+                          <div className="text-xs font-black">📅 Book Free Site Visit Slot</div>
+                          <div className="text-[10px] text-emerald-100 font-medium">Send "Hi" on WhatsApp to book schedule</div>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-emerald-200 group-hover:translate-x-0.5 transition-transform" />
+                    </button>
+                    <div className="text-center text-[10px] text-slate-400 font-semibold mt-1.5">
+                      — or send quick inquiry below —
+                    </div>
+                  </div>
+                )}
+
+                <form onSubmit={handleInquirySubmit} className="pt-2 space-y-3.5">
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
                       Your Name *
@@ -656,7 +886,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                 <div className="p-2 rounded-xl bg-flatzy-yellow/20 text-flatzy-navy">
                   <Share2 className="w-4 h-4" />
                 </div>
-                <h3 className="text-lg font-black font-poppins">Share this Flat</h3>
+                <h3 className="text-lg font-black font-poppins">{t('detail.shareFlat')}</h3>
               </div>
               <button
                 onClick={() => setIsShareModalOpen(false)}
@@ -705,12 +935,12 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                   {copied ? (
                     <>
                       <Check className="w-4 h-4 text-emerald-700" />
-                      <span>Copied!</span>
+                      <span>{t('detail.copied')}</span>
                     </>
                   ) : (
                     <>
                       <Copy className="w-4 h-4" />
-                      <span>Copy Link</span>
+                      <span>{t('detail.copyLink')}</span>
                     </>
                   )}
                 </button>
@@ -734,7 +964,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                   className="py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold flex items-center justify-center gap-2 transition-colors"
                 >
                   <MessageSquare className="w-4 h-4 text-emerald-600" />
-                  <span>WhatsApp</span>
+                  <span>{t('detail.whatsapp')}</span>
                 </button>
 
                 <button
@@ -742,7 +972,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                   className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 text-xs font-bold flex items-center justify-center gap-2 transition-colors"
                 >
                   <Mail className="w-4 h-4 text-slate-600" />
-                  <span>Email</span>
+                  <span>{t('detail.email')}</span>
                 </button>
               </div>
             </div>
@@ -750,6 +980,16 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
           </div>
         </div>
       )}
+
+      {/* Full Picture View Lightbox Modal */}
+      <PictureViewModal
+        isOpen={isPictureViewOpen}
+        images={property.images}
+        initialIndex={selectedImageIndex}
+        title={property.title}
+        subLocation={`${property.subLocation}, ${property.location}`}
+        onClose={() => setIsPictureViewOpen(false)}
+      />
 
     </div>
   );

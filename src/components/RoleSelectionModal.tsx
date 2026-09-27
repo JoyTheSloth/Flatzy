@@ -54,6 +54,7 @@ interface RoleSelectionModalProps {
   onClose: () => void;
   targetProperty?: Property | null;
   onApplyFilters?: (location?: LocationName, budget?: BudgetRange) => void;
+  onOpenListProperty?: () => void;
 }
 
 const KOLKATA_AREAS = [
@@ -73,6 +74,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
   onClose,
   targetProperty,
   onApplyFilters,
+  onOpenListProperty,
 }) => {
   const { language } = useLanguage();
   const isBn = language === 'bn';
@@ -410,6 +412,29 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
               </div>
 
             </div>
+
+            {/* Quick Landlord Listing Fast Track */}
+            {onOpenListProperty && (
+              <div className="mt-3 p-3 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🏡</span>
+                  <div>
+                    <span className="font-extrabold text-emerald-950 block">Are you a Flat Owner?</span>
+                    <span className="text-[11px] text-emerald-700">Post your property in 2 minutes for free</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenListProperty();
+                  }}
+                  className="px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] whitespace-nowrap shadow-xs transition-colors"
+                >
+                  Post Flat (Free)
+                </button>
+              </div>
+            )}
 
             {/* Bottom Skip */}
             <div className="text-center pt-2">

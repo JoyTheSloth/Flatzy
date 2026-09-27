@@ -13,6 +13,18 @@ export interface LeadSubmission {
   brokerNote?: string;
   source?: string;
   submittedAt?: string;
+  // Visit scheduling fields
+  visitType?: 'In-Person' | 'Video Tour';
+  visitDate?: string;
+  visitSlot?: string;
+  propertyTitle?: string;
+  propertyId?: string;
+  // Owner listing fields
+  propertyRent?: number;
+  propertyDeposit?: number;
+  furnishingStatus?: string;
+  amenities?: string[];
+  photoUrls?: string[];
 }
 
 // You can set VITE_GOOGLE_SHEET_URL in your .env file or paste the deployed Web App URL below:

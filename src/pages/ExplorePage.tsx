@@ -11,24 +11,32 @@ import {
   Sparkles, 
   MapPin, 
   RotateCcw,
-  CheckCircle2
+  CheckCircle2,
+  Train
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ExplorePageProps {
+  properties?: Property[];
   initialFilters?: Partial<FilterState>;
   savedPropertyIds: string[];
   onToggleSave: (id: string) => void;
   onSelectProperty: (property: Property) => void;
   onOpenInquiryModal: (property?: Property) => void;
+  onOpenScheduleVisit?: (property: Property) => void;
 }
 
 export const ExplorePage: React.FC<ExplorePageProps> = ({
+  properties,
   initialFilters = {},
   savedPropertyIds,
   onToggleSave,
   onSelectProperty,
   onOpenInquiryModal,
+  onOpenScheduleVisit,
 }) => {
+  const { t } = useLanguage();
+  const baseProperties = properties && properties.length > 0 ? properties : PROPERTIES_DATA;
   const defaultFilters: FilterState = {
     searchQuery: '',
     locations: [],
@@ -57,7 +65,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
 
   // Reactive filtering logic
   const filteredProperties = useMemo(() => {
-    return PROPERTIES_DATA.filter((prop) => {
+    return baseProperties.filter((prop) => {
       // Search query
       if (filters.searchQuery.trim()) {
         const q = filters.searchQuery.toLowerCase();
@@ -120,6 +128,15 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
         if (!hasAllAmenities) return false;
       }
 
+      // Transit & IT Hubs Commute Filter
+      if (filters.transitHubs && filters.transitHubs.length > 0) {
+        const matchesTransit = filters.transitHubs.some(hub => 
+          (prop.transitTags && prop.transitTags.includes(hub)) ||
+          (prop.commuteHighlight && prop.commuteHighlight.toLowerCase().includes(hub.toLowerCase()))
+        );
+        if (!matchesTransit) return false;
+      }
+
       return true;
     }).sort((a, b) => {
       if (filters.sortBy === 'rent_low') return a.monthlyRent - b.monthlyRent;
@@ -140,6 +157,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
       tenantType: [],
       propertyTypes: [],
       amenities: [],
+      transitHubs: [],
       sortBy: 'recommended',
     });
   };
@@ -151,53 +169,60 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
     (filters.furnishing.length > 0 ? 1 : 0) +
     (filters.tenantType.length > 0 ? 1 : 0) +
     (filters.amenities.length > 0 ? 1 : 0) +
+    ((filters.transitHubs?.length || 0) > 0 ? 1 : 0) +
     (filters.searchQuery ? 1 : 0);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6">
       
       {/* Top Page Header */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="space-y-3.5">
+        <div className="flex items-center justify-between gap-3">
           <div>
-            <span className="text-xs font-black uppercase tracking-wider text-flatzy-coral">
-              Live Kolkata Marketplace
-            </span>
-            <h1 className="text-3xl sm:text-4xl font-black text-flatzy-navy font-poppins">
-              Find your next flat
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] sm:text-xs font-black uppercase tracking-wider mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              {t('explore.badge')}
+            </div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-flatzy-navy font-poppins tracking-tight">
+              {t('explore.title')}
             </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Browse available verified rentals in Kolkata. Send an inquiry to connect with the broker.
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+              {t('explore.subtitle')}
             </p>
           </div>
 
+          {/* Compact Inquiry CTA Button on Header */}
           <button
             onClick={() => onOpenInquiryModal()}
-            className="px-6 py-3 rounded-full bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-extrabold text-xs sm:text-sm shadow-soft transition-all"
+            className="shrink-0 px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-black text-xs sm:text-sm shadow-xs hover:shadow-soft transition-all active:scale-95 flex items-center gap-1.5"
+            title="Custom flat inquiry"
           >
-            Can't find what you need? Inquire
+            <Sparkles className="w-3.5 h-3.5 text-flatzy-navy" />
+            <span className="hidden sm:inline">{t('explore.cantFind')}</span>
+            <span>{t('explore.inquire')}</span>
           </button>
         </div>
 
-        {/* Search Bar & Sort Row */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4">
+        {/* Unified Search, Filter & Sort Controls (Single Clean Line) */}
+        <div className="flex items-center gap-2 pt-1">
           
           {/* Main Search Bar */}
-          <div className="relative flex-1 flex items-center bg-white rounded-2xl px-4 py-3 border border-slate-200 shadow-soft focus-within:border-flatzy-yellow transition-colors">
-            <Search className="w-5 h-5 text-slate-400 mr-2 shrink-0" />
+          <div className="relative flex-1 flex items-center bg-white rounded-2xl px-3.5 py-2.5 sm:py-3 border border-slate-200/90 shadow-xs focus-within:border-flatzy-navy focus-within:ring-2 focus-within:ring-flatzy-navy/10 transition-all">
+            <Search className="w-4 h-4 text-slate-400 mr-2 shrink-0" />
             <input
               type="text"
               value={filters.searchQuery}
               onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
-              placeholder="Search by location, landmark, or apartment (e.g. Shapoorji, Eco Park, Sector V)..."
-              className="w-full bg-transparent text-sm text-flatzy-navy placeholder:text-slate-400 focus:outline-none font-medium"
+              placeholder={t('explore.searchPlaceholder')}
+              className="w-full bg-transparent text-xs sm:text-sm text-flatzy-navy placeholder:text-slate-400 focus:outline-none font-medium"
             />
             {filters.searchQuery && (
               <button
                 onClick={() => setFilters({ ...filters, searchQuery: '' })}
-                className="text-xs text-slate-400 hover:text-slate-700"
+                className="p-1 text-slate-400 hover:text-slate-700 shrink-0"
+                aria-label="Clear search"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -205,36 +230,130 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
           {/* Mobile Filter Drawer Button */}
           <button
             onClick={() => setMobileFilterOpen(true)}
-            className="lg:hidden flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-white border border-slate-200 shadow-soft text-flatzy-navy text-xs font-bold"
+            className={`lg:hidden shrink-0 flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-3 rounded-2xl border transition-all text-xs font-bold shadow-xs active:scale-95 ${
+              activeFiltersCount > 0
+                ? 'bg-flatzy-navy text-white border-flatzy-navy'
+                : 'bg-white text-slate-700 border-slate-200/90 hover:border-slate-300'
+            }`}
+            title="Open filters"
           >
-            <SlidersHorizontal className="w-4 h-4 text-flatzy-yellow" />
-            <span>Filters ({activeFiltersCount})</span>
+            <SlidersHorizontal className={`w-4 h-4 ${activeFiltersCount > 0 ? 'text-flatzy-yellow' : 'text-slate-600'}`} />
+            <span className="hidden sm:inline">{t('explore.filters')}</span>
+            {activeFiltersCount > 0 && (
+              <span className="w-4 h-4 rounded-full bg-flatzy-yellow text-flatzy-navy text-[10px] font-black flex items-center justify-center">
+                {activeFiltersCount}
+              </span>
+            )}
           </button>
 
-          {/* Sort Dropdown */}
-          <div className="flex items-center gap-2 bg-white rounded-2xl px-4 py-2.5 border border-slate-200 shadow-soft shrink-0">
-            <ArrowUpDown className="w-4 h-4 text-slate-400" />
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider hidden sm:inline">
-              Sort:
-            </label>
+          {/* Sort Dropdown Pill */}
+          <div className="relative shrink-0 flex items-center bg-white rounded-2xl px-2.5 sm:px-3 py-2.5 sm:py-3 border border-slate-200/90 shadow-xs">
+            <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 mr-1.5 shrink-0" />
             <select
               value={filters.sortBy}
               onChange={(e) => setFilters({ ...filters, sortBy: e.target.value as any })}
-              className="bg-transparent text-xs font-bold text-flatzy-navy focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs font-bold text-flatzy-navy focus:outline-none cursor-pointer pr-1"
             >
-              <option value="recommended">Recommended</option>
-              <option value="rent_low">Lowest Rent</option>
-              <option value="rent_high">Highest Rent</option>
-              <option value="newest">Newest</option>
+              <option value="recommended">{t('explore.sortRecommended')}</option>
+              <option value="rent_low">{t('explore.sortRentLow')}</option>
+              <option value="rent_high">{t('explore.sortRentHigh')}</option>
+              <option value="newest">{t('explore.sortNewest')}</option>
             </select>
           </div>
 
+        </div>
+
+        {/* Quick Filter Horizontal Chips Strip (Zero Scrollbar Line) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar text-xs">
+          {[
+            { id: 'all', label: 'All Flats', isLoc: true, value: '' },
+            { id: 'shapoorji', label: '📍 Shapoorji', isLoc: true, value: 'Shapoorji' },
+            { id: 'newtown', label: '📍 New Town', isLoc: true, value: 'New Town' },
+            { id: '2bhk', label: '🏠 2 BHK', isBhk: true, value: '2 BHK' },
+            { id: '3bhk', label: '✨ 3 BHK', isBhk: true, value: '3 BHK' },
+            { id: 'ac', label: '❄️ AC Installed', isAmenity: true, value: 'AC' },
+            { id: 'metro', label: '🚇 Near Metro', isTransit: true, value: 'Green Line Metro' },
+            { id: 'tech', label: '💼 Sector V Tech Hub', isTransit: true, value: 'Sector V IT Hub' }
+          ].map((chip) => {
+            let isSelected = false;
+            if (chip.id === 'all') {
+              isSelected = filters.locations.length === 0 && filters.bedrooms.length === 0 && (!filters.transitHubs || filters.transitHubs.length === 0) && filters.amenities.length === 0;
+            } else if (chip.isLoc) {
+              isSelected = filters.locations.includes(chip.value as any);
+            } else if (chip.isBhk) {
+              isSelected = filters.bedrooms.includes(chip.value);
+            } else if (chip.isAmenity) {
+              isSelected = filters.amenities.some(a => a.toLowerCase().includes('ac'));
+            } else if (chip.isTransit) {
+              isSelected = (filters.transitHubs || []).includes(chip.value);
+            }
+
+            return (
+              <button
+                key={chip.id}
+                onClick={() => {
+                  if (chip.id === 'all') {
+                    handleResetFilters();
+                  } else if (chip.isLoc) {
+                    const current = filters.locations;
+                    const exists = current.includes(chip.value as any);
+                    setFilters({
+                      ...filters,
+                      locations: exists ? current.filter(l => l !== chip.value) : [...current, chip.value as any]
+                    });
+                  } else if (chip.isBhk) {
+                    const current = filters.bedrooms;
+                    const exists = current.includes(chip.value);
+                    setFilters({
+                      ...filters,
+                      bedrooms: exists ? current.filter(b => b !== chip.value) : [...current, chip.value]
+                    });
+                  } else if (chip.isAmenity) {
+                    const exists = filters.amenities.includes('AC');
+                    setFilters({
+                      ...filters,
+                      amenities: exists ? filters.amenities.filter(a => a !== 'AC') : [...filters.amenities, 'AC']
+                    });
+                  } else if (chip.isTransit) {
+                    const current = filters.transitHubs || [];
+                    const exists = current.includes(chip.value);
+                    setFilters({
+                      ...filters,
+                      transitHubs: exists ? current.filter(h => h !== chip.value) : [...current, chip.value]
+                    });
+                  }
+                }}
+                className={`shrink-0 px-3 py-1.5 rounded-full font-bold text-xs transition-all border ${
+                  isSelected
+                    ? 'bg-flatzy-navy text-white border-flatzy-navy shadow-xs scale-102'
+                    : 'bg-white text-slate-700 border-slate-200/90 hover:border-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                {chip.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Active Filters Pill Bar */}
         {activeFiltersCount > 0 && (
           <div className="flex flex-wrap items-center gap-2 pt-2">
             <span className="text-xs font-bold text-slate-400 mr-1">Active Filters:</span>
+            
+            {filters.transitHubs?.map((hub) => (
+              <span
+                key={hub}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-bold"
+              >
+                <span>🚇 {hub}</span>
+                <button
+                  onClick={() => setFilters({ ...filters, transitHubs: filters.transitHubs?.filter(h => h !== hub) })}
+                  className="hover:text-rose-600"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </span>
+            ))}
             
             {filters.locations.map((loc) => (
               <span
@@ -300,10 +419,10 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
           
           <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
             <span>
-              Showing <strong className="text-slate-900 font-bold">{filteredProperties.length}</strong> rental flats in Kolkata
+              {t('explore.showing')} <strong className="text-slate-900 font-bold">{filteredProperties.length}</strong> {t('explore.rentalFlats')}
             </span>
             <span className="hidden sm:inline-block">
-              Updated within 24 hours
+              {t('explore.updated')}
             </span>
           </div>
 
@@ -314,10 +433,10 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
               </div>
               <div className="space-y-1">
                 <h3 className="text-xl font-black text-flatzy-navy font-poppins">
-                  No flats found matching these filters
+                  {t('explore.noFlatsTitle')}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
-                  Try relaxing your budget, clearing selected amenities, or selecting another nearby location like Shapoorji or New Town.
+                  {t('explore.noFlatsDesc')}
                 </p>
               </div>
 
@@ -326,7 +445,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
                   onClick={handleResetFilters}
                   className="px-6 py-2.5 rounded-full bg-flatzy-yellow text-flatzy-navy font-black text-xs uppercase tracking-wider shadow-sm"
                 >
-                  Reset All Filters
+                  {t('explore.resetAll')}
                 </button>
               </div>
             </div>
@@ -339,6 +458,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
                   isSaved={savedPropertyIds.includes(property.id)}
                   onToggleSave={onToggleSave}
                   onSelectProperty={onSelectProperty}
+                  onScheduleVisit={onOpenScheduleVisit}
                 />
               ))}
             </div>
@@ -354,7 +474,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
           <div className="w-full max-w-sm bg-white h-full overflow-y-auto p-5 space-y-4 animate-in slide-in-from-right duration-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="font-extrabold text-base text-flatzy-navy">
-                Filter Flats
+                {t('explore.filterFlats')}
               </h3>
               <button
                 onClick={() => setMobileFilterOpen(false)}

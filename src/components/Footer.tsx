@@ -112,8 +112,8 @@ export const Footer: React.FC<FooterProps> = ({
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => onNavigate('reels')} className="hover:text-flatzy-yellow transition-colors">
-                    {t('nav.reels')}
+                  <button onClick={() => onNavigate('list-flats')} className="hover:text-flatzy-yellow transition-colors">
+                    {t('nav.listFlats')}
                   </button>
                 </li>
                 <li>
@@ -362,8 +362,8 @@ export const Footer: React.FC<FooterProps> = ({
         {/* 3. BOTTOM COPYRIGHT & LEGAL BAR */}
         {/* ========================================================================= */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
-          <p>
-            © 2026 <span className="text-white font-semibold">Flatzy Kolkata</span>. {t('footer.rights')}
+          <p className="flex items-center gap-2">
+            <span>© 2026 <strong className="text-white font-semibold">Flatzy Kolkata</strong>. {t('footer.rights')}</span>
           </p>
 
           <p className="flex items-center gap-1.5 text-slate-400 text-center sm:text-right">

@@ -6,6 +6,9 @@ import { Footer } from './components/Footer';
 import { RoleSelectionModal } from './components/RoleSelectionModal';
 import { SavedFlatsDrawer } from './components/SavedFlatsDrawer';
 import { MobileBottomCTA } from './components/MobileBottomCTA';
+import { ScheduleVisitModal } from './components/ScheduleVisitModal';
+import { ListPropertyModal } from './components/ListPropertyModal';
+import { FloatingWhatsAppWidget } from './components/FloatingWhatsAppWidget';
 
 import { HomePage } from './pages/HomePage';
 import { ExplorePage } from './pages/ExplorePage';
@@ -15,78 +18,150 @@ import { ReelDiscoveryPage } from './pages/ReelDiscoveryPage';
 import { HowItWorksPage } from './pages/HowItWorksPage';
 import { AboutPage } from './pages/AboutPage';
 import { ContactPage } from './pages/ContactPage';
+import { PostFlatPage } from './pages/PostFlatPage';
+import { BrokersPage } from './pages/BrokersPage';
+import { BrokerProfilePage } from './pages/BrokerProfilePage';
+import { BROKERS_DATA, type Broker } from './data/brokersData';
+import { getCommunityListings } from './services/communityListingService';
+import type { CommunityListing } from './types/property';
 
 export function App() {
   const [currentTab, setCurrentTab] = useState<string>('home');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [selectedBroker, setSelectedBroker] = useState<Broker | null>(null);
   const [savedPropertyIds, setSavedPropertyIds] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem('flatzy_saved_flats');
-      return stored ? JSON.parse(stored) : ['prop-1', 'prop-9'];
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+      return [];
     } catch {
-      return ['prop-1', 'prop-9'];
+      return [];
     }
   });
 
   const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
   const [inquiryTargetProperty, setInquiryTargetProperty] = useState<Property | null>(null);
   const [isSavedDrawerOpen, setIsSavedDrawerOpen] = useState(false);
-  const [isRoleModalOpen, setIsRoleModalOpen] = useState(true);
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [isScheduleVisitOpen, setIsScheduleVisitOpen] = useState(false);
+  const [scheduleVisitProperty, setScheduleVisitProperty] = useState<Property | null>(null);
+  const [isListPropertyOpen, setIsListPropertyOpen] = useState(false);
+
+  // Dynamic Community Listings & Combined Marketplace Inventory
+  const [communityListings, setCommunityListings] = useState<CommunityListing[]>(() => getCommunityListings());
+
+  const refreshCommunityListings = () => {
+    setCommunityListings(getCommunityListings());
+  };
+
+  const approvedCommunityListings = communityListings.filter(l => l.approvalStatus === 'approved');
+  const allProperties: Property[] = [...approvedCommunityListings, ...PROPERTIES_DATA];
 
   // Quick filter presets for Explore page
   const [exploreFilterPreset, setExploreFilterPreset] = useState<Partial<FilterState>>({});
 
-  // Persist saved flats to localStorage
+  // Persist saved flats to localStorage cache and sync across tabs
   useEffect(() => {
     try {
       localStorage.setItem('flatzy_saved_flats', JSON.stringify(savedPropertyIds));
     } catch {}
   }, [savedPropertyIds]);
 
-  // Scroll to top whenever tab or property changes
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'flatzy_saved_flats' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) {
+            setSavedPropertyIds(parsed);
+          }
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  // Scroll to top whenever tab or property or broker changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [currentTab, selectedProperty]);
+  }, [currentTab, selectedProperty, selectedBroker]);
 
   // Handle hash routing for browser navigation support
   useEffect(() => {
     const handleHash = () => {
-      const hash = window.location.hash.replace('#', '');
-      if (!hash || hash === 'home') {
+      const hash = window.location.hash.replace(/^#\/?/, '').trim();
+      if (!hash || hash === 'home' || hash === 'admin') {
         setCurrentTab('home');
         setSelectedProperty(null);
+        setSelectedBroker(null);
+        if (hash === 'admin') {
+          window.location.hash = '';
+        }
       } else if (hash.startsWith('property/')) {
         const propIdOrSlug = hash.replace('property/', '');
-        const found = PROPERTIES_DATA.find(p => p.slug === propIdOrSlug || p.id === propIdOrSlug);
-        if (found) {
-          setSelectedProperty(found);
-          setCurrentTab('property-detail');
-        }
-      } else if (['explore', 'locations', 'reels', 'how-it-works', 'about', 'contact'].includes(hash)) {
-        setCurrentTab(hash);
+        const found = allProperties.find(p => p.slug === propIdOrSlug || p.id === propIdOrSlug);
+        setSelectedProperty(found || allProperties[0]);
+        setCurrentTab('property-detail');
+      } else if (hash === 'property-detail') {
+        setSelectedProperty(prev => prev || allProperties[0]);
+        setCurrentTab('property-detail');
+      } else if (hash.startsWith('broker/') || hash.startsWith('brokers/')) {
+        const brokerId = hash.replace(/^brokers?\//, '');
+        const found = BROKERS_DATA.find(b => b.id === brokerId || b.name.toLowerCase() === brokerId.toLowerCase());
+        setSelectedBroker(found || BROKERS_DATA[0]);
+        setCurrentTab('broker-detail');
+      } else if (hash === 'broker-detail') {
+        setSelectedBroker(prev => prev || BROKERS_DATA[0]);
+        setCurrentTab('broker-detail');
+      } else if (['explore', 'list-flats', 'locations', 'reels', 'how-it-works', 'about', 'contact', 'brokers', 'broker'].includes(hash)) {
+        setCurrentTab(hash === 'broker' ? 'brokers' : hash);
         setSelectedProperty(null);
+        setSelectedBroker(null);
+      } else {
+        // Fallback for any unknown hash or removed route
+        setCurrentTab('home');
+        setSelectedProperty(null);
+        setSelectedBroker(null);
       }
     };
 
     handleHash();
     window.addEventListener('hashchange', handleHash);
     return () => window.removeEventListener('hashchange', handleHash);
-  }, []);
+  }, [communityListings]);
 
   const navigateTo = (tab: string, extra?: any) => {
     setCurrentTab(tab);
     if (tab !== 'property-detail') {
       setSelectedProperty(null);
-      window.location.hash = tab;
     }
+    if (tab !== 'broker-detail') {
+      setSelectedBroker(null);
+    }
+    window.location.hash = tab;
   };
 
   const handleToggleSave = (propertyId: string) => {
-    setSavedPropertyIds(prev => 
-      prev.includes(propertyId)
+    setSavedPropertyIds(prev => {
+      const next = prev.includes(propertyId)
         ? prev.filter(id => id !== propertyId)
-        : [...prev, propertyId]
-    );
+        : [...prev, propertyId];
+      try {
+        localStorage.setItem('flatzy_saved_flats', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const handleClearAllSaved = () => {
+    setSavedPropertyIds([]);
+    try {
+      localStorage.setItem('flatzy_saved_flats', JSON.stringify([]));
+    } catch {}
   };
 
   const handleSelectProperty = (property: Property) => {
@@ -95,9 +170,24 @@ export function App() {
     window.location.hash = `property/${property.slug}`;
   };
 
+  const handleSelectBroker = (broker: Broker) => {
+    setSelectedBroker(broker);
+    setCurrentTab('broker-detail');
+    window.location.hash = `broker/${broker.id}`;
+  };
+
   const handleOpenInquiryModal = (property?: Property) => {
     setInquiryTargetProperty(property || null);
     setIsRoleModalOpen(true);
+  };
+
+  const handleOpenScheduleVisit = (property?: Property) => {
+    setScheduleVisitProperty(property || selectedProperty || null);
+    setIsScheduleVisitOpen(true);
+  };
+
+  const handleOpenListProperty = () => {
+    setIsListPropertyOpen(true);
   };
 
   const handleApplyQuickFilter = (loc?: LocationName, budget?: BudgetRange) => {
@@ -108,7 +198,7 @@ export function App() {
     navigateTo('explore');
   };
 
-  const savedPropertiesList = PROPERTIES_DATA.filter(p => savedPropertyIds.includes(p.id));
+  const savedPropertiesList = allProperties.filter(p => savedPropertyIds.includes(p.id));
 
   return (
     <div className="min-h-screen flex flex-col bg-flatzy-cream text-flatzy-navy selection:bg-flatzy-yellow selection:text-flatzy-navy font-poppins pb-24 md:pb-0">
@@ -117,10 +207,11 @@ export function App() {
       <Navbar
         currentTab={currentTab}
         onNavigate={navigateTo}
-        savedCount={savedPropertyIds.length}
+        savedCount={savedPropertiesList.length}
         onOpenSavedDrawer={() => setIsSavedDrawerOpen(true)}
         onOpenInquiryModal={() => handleOpenInquiryModal(selectedProperty || undefined)}
         onOpenRoleModal={() => setIsRoleModalOpen(true)}
+        onOpenListProperty={handleOpenListProperty}
       />
 
       {/* Main View Area */}
@@ -133,27 +224,37 @@ export function App() {
             onSelectProperty={handleSelectProperty}
             onOpenInquiryModal={handleOpenInquiryModal}
             onApplyQuickFilter={handleApplyQuickFilter}
+            onOpenScheduleVisit={handleOpenScheduleVisit}
           />
         )}
 
         {currentTab === 'explore' && (
           <ExplorePage
+            properties={allProperties}
             initialFilters={exploreFilterPreset}
             savedPropertyIds={savedPropertyIds}
             onToggleSave={handleToggleSave}
             onSelectProperty={handleSelectProperty}
             onOpenInquiryModal={handleOpenInquiryModal}
+            onOpenScheduleVisit={handleOpenScheduleVisit}
           />
         )}
 
-        {currentTab === 'property-detail' && selectedProperty && (
+        {currentTab === 'list-flats' && (
+          <PostFlatPage
+            onNavigate={navigateTo}
+          />
+        )}
+
+        {currentTab === 'property-detail' && (
           <PropertyDetailPage
-            property={selectedProperty}
+            property={selectedProperty || allProperties[0]}
             onBack={() => navigateTo('explore')}
-            isSaved={savedPropertyIds.includes(selectedProperty.id)}
+            isSaved={savedPropertyIds.includes((selectedProperty || allProperties[0]).id)}
             onToggleSave={handleToggleSave}
             onOpenInquiryModal={handleOpenInquiryModal}
             onSelectProperty={handleSelectProperty}
+            onOpenScheduleVisit={handleOpenScheduleVisit}
           />
         )}
 
@@ -191,14 +292,44 @@ export function App() {
             onNavigate={navigateTo}
           />
         )}
+
+        {currentTab === 'brokers' && (
+          <BrokersPage
+            onNavigate={navigateTo}
+            onSelectBroker={handleSelectBroker}
+          />
+        )}
+
+        {currentTab === 'broker-detail' && (
+          <BrokerProfilePage
+            broker={selectedBroker || BROKERS_DATA[0]}
+            onBack={() => navigateTo('brokers')}
+            onNavigate={navigateTo}
+            onSelectProperty={handleSelectProperty}
+          />
+        )}
+
+        {!['home', 'explore', 'list-flats', 'property-detail', 'locations', 'reels', 'how-it-works', 'about', 'contact', 'brokers', 'broker-detail'].includes(currentTab) && (
+          <HomePage
+            onNavigate={navigateTo}
+            savedPropertyIds={savedPropertyIds}
+            onToggleSave={handleToggleSave}
+            onSelectProperty={handleSelectProperty}
+            onOpenInquiryModal={handleOpenInquiryModal}
+            onApplyQuickFilter={handleApplyQuickFilter}
+            onOpenScheduleVisit={handleOpenScheduleVisit}
+          />
+        )}
       </main>
 
-      {/* Global Footer */}
-      <Footer
-        onNavigate={navigateTo}
-        onSelectLocation={(loc) => handleApplyQuickFilter(loc)}
-        onOpenInquiryModal={() => handleOpenInquiryModal()}
-      />
+      {/* Global Footer (On phone UI: ONLY visible on Home page. Hidden on Explore, List Flats, Brokers, etc.) */}
+      <div className={currentTab === 'home' ? 'block' : 'hidden md:block'}>
+        <Footer
+          onNavigate={navigateTo}
+          onSelectLocation={(loc) => handleApplyQuickFilter(loc)}
+          onOpenInquiryModal={() => handleOpenInquiryModal()}
+        />
+      </div>
 
       {/* Unified Inquiry & Role Selection Modal (Renter/Buyer vs Broker) */}
       <RoleSelectionModal
@@ -213,6 +344,23 @@ export function App() {
           setInquiryTargetProperty(null);
           handleApplyQuickFilter(loc, budget);
         }}
+        onOpenListProperty={handleOpenListProperty}
+      />
+
+      {/* Free Site Visit Slot Booking Modal */}
+      <ScheduleVisitModal
+        isOpen={isScheduleVisitOpen}
+        onClose={() => {
+          setIsScheduleVisitOpen(false);
+          setScheduleVisitProperty(null);
+        }}
+        targetProperty={scheduleVisitProperty}
+      />
+
+      {/* 2-Minute List Your Property Landlord Flow Modal */}
+      <ListPropertyModal
+        isOpen={isListPropertyOpen}
+        onClose={() => setIsListPropertyOpen(false)}
       />
 
       {/* Saved / Bookmarked Flats Drawer */}
@@ -221,7 +369,7 @@ export function App() {
         onClose={() => setIsSavedDrawerOpen(false)}
         savedProperties={savedPropertiesList}
         onRemoveSaved={handleToggleSave}
-        onClearAll={() => setSavedPropertyIds([])}
+        onClearAll={handleClearAllSaved}
         onSelectProperty={handleSelectProperty}
         onOpenInquiryModal={handleOpenInquiryModal}
         onNavigate={navigateTo}
@@ -232,9 +380,13 @@ export function App() {
         currentTab={currentTab}
         onNavigate={navigateTo}
         onOpenInquiryModal={() => handleOpenInquiryModal(selectedProperty || undefined)}
-        savedCount={savedPropertyIds.length}
+        savedCount={savedPropertiesList.length}
         onOpenSavedDrawer={() => setIsSavedDrawerOpen(true)}
+        onOpenRoleModal={() => setIsRoleModalOpen(true)}
       />
+
+      {/* Floating WhatsApp Quick Connect & Dialog Widget (All screens) */}
+      <FloatingWhatsAppWidget />
 
     </div>
   );

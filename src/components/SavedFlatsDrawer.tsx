@@ -11,10 +11,12 @@ import {
   ExternalLink,
   ShieldCheck,
   Send,
-  Tag
+  Tag,
+  ArrowRight
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { getWhatsAppUrl } from '../config/contact';
+import { WhatsAppIcon } from './WhatsAppIcon';
 
 interface SavedFlatsDrawerProps {
   isOpen: boolean;
@@ -46,16 +48,25 @@ export const SavedFlatsDrawer: React.FC<SavedFlatsDrawerProps> = ({
   const totalDeposit = savedProperties.reduce((acc, p) => acc + (p.securityDeposit || p.monthlyRent * 2), 0);
 
   const handleWhatsAppSingle = (property: Property) => {
-    const text = `Hi Flatzy! I am interested in visiting this flat saved in my Flatzy wishlist:\n\n*${property.title}*\nRef ID: ${property.brokerReferenceId}\nLocation: ${property.subLocation}, ${property.location}\nRent: ₹${property.monthlyRent.toLocaleString('en-IN')}/month\nDeposit: ₹${(property.securityDeposit || property.monthlyRent * 2).toLocaleString('en-IN')}\n\nPlease share the verified broker contact and schedule a visit!`;
+    let pricingStr = `₹${property.monthlyRent.toLocaleString('en-IN')}/month`;
+    if (property.listingType === 'sale' && property.salePrice) {
+      pricingStr = `Sale: ₹${property.salePrice >= 10000000 ? (property.salePrice / 10000000).toFixed(2) + ' Cr' : (property.salePrice / 100000).toFixed(0) + ' Lacs'}`;
+    }
+    const text = `Hi Flatzy Kolkata! I am interested in this flat saved from my shortlist:\n\n*${property.title}*\nRef ID: ${property.brokerReferenceId || property.id}\nLocation: ${property.subLocation || property.location}\nRent/Price: ${pricingStr}\n\nPlease connect me with the broker to get more options & schedule a visit!`;
     window.open(getWhatsAppUrl(text), '_blank', 'noopener,noreferrer');
   };
 
   const handleWhatsAppAll = () => {
     if (savedProperties.length === 0) return;
     const summary = savedProperties
-      .map((p, i) => `${i + 1}. *${p.title}* (${p.brokerReferenceId}) - ₹${p.monthlyRent.toLocaleString('en-IN')}/mo at ${p.subLocation}`)
-      .join('\n');
-    const text = `Hi Flatzy Kolkata! I have shortlisted these ${savedProperties.length} flats on my Flatzy wishlist:\n\n${summary}\n\nCombined Monthly Rent: ₹${totalMonthlyRent.toLocaleString('en-IN')}/mo\n\nCan you connect me with the brokers to schedule visits together?`;
+      .map((p, i) => `${i + 1}. *${p.title}* (${p.brokerReferenceId || p.id})\n   • Location: ${p.subLocation || p.location}\n   • Rent: ₹${p.monthlyRent.toLocaleString('en-IN')}/mo (${p.furnishing})`)
+      .join('\n\n');
+    const text = `Hi Flatzy Kolkata! I have shortlisted these ${savedProperties.length} flat(s) on Flatzy:\n\n${summary}\n\nCombined Monthly Rent: ₹${totalMonthlyRent.toLocaleString('en-IN')}/mo\n\nI want to continue connecting with the broker for these flat options and schedule visits. Please share details!`;
+    window.open(getWhatsAppUrl(text), '_blank', 'noopener,noreferrer');
+  };
+
+  const handleWhatsAppCustomInquiry = () => {
+    const text = `Hi Flatzy Kolkata! I am looking for flats to rent/buy in Kolkata. Could you connect me with verified brokers to share the latest available flat options matching my requirements?`;
     window.open(getWhatsAppUrl(text), '_blank', 'noopener,noreferrer');
   };
 
@@ -130,13 +141,26 @@ export const SavedFlatsDrawer: React.FC<SavedFlatsDrawerProps> = ({
                 </h4>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   {isBn
-                    ? 'কলকাতার যেকোনো ফ্ল্যাটে হার্ট আইকন ট্যাপ করে সেভ করুন এবং ব্রোকারদের সাথে সরাসরি যোগাযোগ করুন।'
-                    : 'Tap the heart icon on any flat card to build your personalized shortlist for quick visits & direct inquiries!'}
+                    ? 'যেকোনো ফ্ল্যাটে হার্ট আইকন ট্যাপ করে সেভ করুন অথবা সরাসরি ব্রোকারের সাথে যোগাযোগ করে নতুন ফ্ল্যাট অপশন পান।'
+                    : 'Tap the heart icon on any flat card to build your shortlist, or connect directly with our brokers for custom flat options!'}
                 </p>
               </div>
 
-              {/* Quick Action to Explore */}
+              {/* Action Buttons: WhatsApp Connect for Flat Options + Explore */}
               <div className="pt-2 w-full max-w-xs space-y-2.5">
+                <button
+                  onClick={handleWhatsAppCustomInquiry}
+                  className="relative w-full overflow-hidden group py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#20bd5a] via-[#25D366] to-[#128C7E] text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg hover:shadow-emerald-500/30 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2.5 border-t border-white/30 cursor-pointer"
+                >
+                  <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0">
+                    <WhatsAppIcon className="w-3.5 h-3.5 text-white drop-shadow-xs" />
+                  </div>
+                  <span className="font-extrabold tracking-tight">
+                    {isBn ? 'ব্রোকারের কাছে ফ্ল্যাট অপশন চান' : 'Connect with Broker for Flat Options'}
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-white/90 group-hover:translate-x-1 transition-transform shrink-0" />
+                </button>
+
                 <button
                   onClick={() => {
                     onClose();
@@ -145,7 +169,7 @@ export const SavedFlatsDrawer: React.FC<SavedFlatsDrawerProps> = ({
                   className="w-full py-3 rounded-2xl bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-black text-xs uppercase tracking-wider shadow-soft transition-all flex items-center justify-center gap-2 active:scale-95"
                 >
                   <Compass className="w-4 h-4" />
-                  <span>{isBn ? 'ফ্ল্যাট খুঁজুন' : 'Explore Kolkata Flats'}</span>
+                  <span>{isBn ? 'ফ্ল্যাট ব্রাউজ করুন' : 'Explore Kolkata Flats'}</span>
                 </button>
 
                 {/* Popular Locality Shortcuts */}
@@ -241,26 +265,26 @@ export const SavedFlatsDrawer: React.FC<SavedFlatsDrawerProps> = ({
 
                 {/* Bottom Half: Single-Tap Quick Action Buttons */}
                 <div className="grid grid-cols-12 gap-1.5 pt-2 border-t border-slate-100">
+                  {/* WhatsApp Chat with Broker */}
+                  <button
+                    onClick={() => handleWhatsAppSingle(property)}
+                    className="col-span-6 py-2 px-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-[11px] border border-emerald-200/90 transition-colors flex items-center justify-center gap-1.5 active:scale-95 shadow-2xs"
+                    title="Chat with broker on WhatsApp"
+                  >
+                    <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span className="truncate">Chat on WhatsApp</span>
+                  </button>
+
                   {/* Inquire */}
                   <button
                     onClick={() => {
                       onOpenInquiryModal(property);
                       onClose();
                     }}
-                    className="col-span-5 py-2 px-2 rounded-xl bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-black text-[11px] uppercase tracking-wider transition-transform flex items-center justify-center gap-1 shadow-2xs active:scale-95"
+                    className="col-span-3 py-2 px-1.5 rounded-xl bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-bold text-[11px] transition-transform flex items-center justify-center gap-1 shadow-2xs active:scale-95"
                   >
-                    <Sparkles className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">{isBn ? 'ইনকোয়ারি' : 'Enquire'}</span>
-                  </button>
-
-                  {/* WhatsApp Chat */}
-                  <button
-                    onClick={() => handleWhatsAppSingle(property)}
-                    className="col-span-4 py-2 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[11px] border border-emerald-200 transition-colors flex items-center justify-center gap-1 active:scale-95"
-                    title="Chat on WhatsApp"
-                  >
-                    <MessageSquare className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>WhatsApp</span>
+                    <Sparkles className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{isBn ? 'ফর্ম' : 'Form'}</span>
                   </button>
 
                   {/* View Details */}
@@ -284,52 +308,60 @@ export const SavedFlatsDrawer: React.FC<SavedFlatsDrawerProps> = ({
 
         {/* Drawer Bottom Summary & Inquire Action Bar */}
         {savedProperties.length > 0 && (
-          <div className="p-3 sm:p-4 border-t border-slate-200 bg-white space-y-2.5 shadow-lg pb-[max(1rem,env(safe-area-inset-bottom))]">
-            {/* Rent & Deposit Combined Breakdown */}
+          <div className="p-3.5 sm:p-4 border-t border-slate-200 bg-white space-y-2.5 shadow-lg pb-[max(1rem,env(safe-area-inset-bottom))]">
+            {/* Rent & Shortlist Combined Breakdown */}
             <div className="flex items-center justify-between text-xs px-1">
               <div>
                 <span className="text-[11px] text-slate-500 font-medium block">
-                  {isBn ? 'মোট সম্ভাব্য ভাড়া:' : 'Combined Rent:'}
+                  {isBn ? 'মোট সম্ভাব্য ভাড়া:' : 'Combined Monthly Rent:'}
                 </span>
-                <span className="text-sm sm:text-base font-black text-flatzy-navy font-poppins">
+                <span className="text-base font-black text-flatzy-navy font-poppins">
                   ₹{totalMonthlyRent.toLocaleString('en-IN')}<span className="text-[10px] font-normal text-slate-500">/mo</span>
                 </span>
               </div>
 
               <div className="text-right">
                 <span className="text-[11px] text-slate-500 font-medium block">
-                  {isBn ? 'আনুমানিক ডিপোজিট:' : 'Est. Deposit:'}
+                  {isBn ? 'সংরক্ষিত ফ্ল্যাট:' : 'Shortlisted Flats:'}
                 </span>
-                <span className="text-xs font-bold text-slate-700">
-                  ₹{totalDeposit.toLocaleString('en-IN')}
+                <span className="text-xs font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  {savedProperties.length} {savedProperties.length === 1 ? 'Flat' : 'Flats'} Selected
                 </span>
               </div>
             </div>
 
-            {/* Action Buttons: Batch Form Inquiry & Batch WhatsApp */}
-            <div className="grid grid-cols-12 gap-2">
-              <button
-                onClick={() => {
-                  onClose();
-                  onOpenInquiryModal();
-                }}
-                className="col-span-9 py-3 sm:py-3.5 rounded-2xl bg-flatzy-navy hover:bg-slate-900 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
-              >
-                <Sparkles className="w-4 h-4 text-flatzy-yellow" />
-                <span className="truncate">
-                  {isBn ? 'সব ফ্ল্যাটের জন্য ইনকোয়ারি' : `Inquire All (${savedProperties.length})`}
-                </span>
-              </button>
+            {/* Primary Action: Direct WhatsApp with Broker for Flat Options */}
+            <button
+              onClick={handleWhatsAppAll}
+              className="relative w-full overflow-hidden group py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#20bd5a] via-[#25D366] to-[#128C7E] text-white shadow-[0_8px_20px_-4px_rgba(37,211,102,0.45)] hover:shadow-[0_12px_24px_-4px_rgba(37,211,102,0.6)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 border-t border-white/30 flex items-center justify-center gap-2.5 cursor-pointer"
+            >
+              {/* Shimmer light sweep */}
+              <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-[350%] transition-transform duration-1000 ease-out pointer-events-none" />
 
-              <button
-                onClick={handleWhatsAppAll}
-                className="col-span-3 py-3 sm:py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition-all active:scale-95 flex items-center justify-center gap-1"
-                title="Send all saved flats to Flatzy on WhatsApp"
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span className="text-[11px]">Chat</span>
-              </button>
-            </div>
+              <div className="relative z-10 flex items-center justify-center gap-2.5 w-full">
+                <div className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-xs flex items-center justify-center shadow-inner group-hover:scale-110 group-hover:bg-white/30 transition-all shrink-0">
+                  <WhatsAppIcon className="w-4 h-4 text-white drop-shadow-xs" />
+                </div>
+                <span className="font-extrabold text-sm tracking-tight text-white drop-shadow-xs truncate">
+                  {isBn 
+                    ? `ব্রোকারের সাথে হোয়াটসঅ্যাপে যোগাযোগ চালিয়ে যান (${savedProperties.length})` 
+                    : `Continue Connecting with Broker for Flats (${savedProperties.length})`}
+                </span>
+                <ArrowRight className="w-4 h-4 text-white/90 group-hover:translate-x-1 transition-transform shrink-0" />
+              </div>
+            </button>
+
+            {/* Secondary Action: Online Web Form Inquiry */}
+            <button
+              onClick={() => {
+                onClose();
+                onOpenInquiryModal();
+              }}
+              className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 active:scale-98"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-flatzy-yellowDark" />
+              <span>{isBn ? 'ওয়েবসাইট ফর্মে ইনকোয়ারি পাঠান' : 'Or Inquire via Online Form'}</span>
+            </button>
           </div>
         )}
 

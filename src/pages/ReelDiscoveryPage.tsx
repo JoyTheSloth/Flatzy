@@ -10,6 +10,7 @@ import {
   CheckCircle2 
 } from 'lucide-react';
 import { getWhatsAppUrl } from '../config/contact';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ReelDiscoveryPageProps {
   onSelectProperty: (property: Property) => void;
@@ -22,6 +23,8 @@ export const ReelDiscoveryPage: React.FC<ReelDiscoveryPageProps> = ({
   onOpenInquiryModal,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
+
   return (
     <div className="relative overflow-hidden">
       {/* Scenic Cityscape Background Image */}
@@ -50,14 +53,14 @@ export const ReelDiscoveryPage: React.FC<ReelDiscoveryPageProps> = ({
                 <div className="space-y-2 text-left">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-flatzy-yellow/30 text-flatzy-navy text-xs font-black uppercase tracking-wider">
                     <Sparkles className="w-3.5 h-3.5 text-flatzy-navy" />
-                    <span>Why Video Tours?</span>
+                    <span>{t('reels.whyVideo')}</span>
                   </div>
                   <h2 className="text-2xl sm:text-3xl font-black text-flatzy-navy font-poppins">
-                    Tour Kolkata flats from your phone. <br className="hidden sm:inline" />
-                    Zero surprise visits.
+                    {t('reels.tourFromPhone')} <br className="hidden sm:inline" />
+                    {t('reels.zeroSurprise')}
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    Photos often use wide angles to hide flaws. Our video walkthroughs reveal the exact condition, daylight, room scale, and storage before you spend hours commuting.
+                    {t('reels.whyDesc')}
                   </p>
                 </div>
 
@@ -67,9 +70,9 @@ export const ReelDiscoveryPage: React.FC<ReelDiscoveryPageProps> = ({
                     <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-black text-sm mb-2">
                       <ShieldCheck className="w-4 h-4" />
                     </div>
-                    <div className="font-extrabold text-xs text-flatzy-navy">100% Real Footage</div>
+                    <div className="font-extrabold text-xs text-flatzy-navy">{t('reels.realFootage')}</div>
                     <p className="text-[11px] text-slate-500 leading-tight">
-                      Raw, authentic video of actual flats available right now.
+                      {t('reels.realFootageDesc')}
                     </p>
                   </div>
 
@@ -77,9 +80,9 @@ export const ReelDiscoveryPage: React.FC<ReelDiscoveryPageProps> = ({
                     <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-sm mb-2">
                       <Clock className="w-4 h-4" />
                     </div>
-                    <div className="font-extrabold text-xs text-flatzy-navy">Save 10+ Hours</div>
+                    <div className="font-extrabold text-xs text-flatzy-navy">{t('reels.saveTime')}</div>
                     <p className="text-[11px] text-slate-500 leading-tight">
-                      Shortlist flats from home and only visit your top choices.
+                      {t('reels.saveTimeDesc')}
                     </p>
                   </div>
 
@@ -87,9 +90,9 @@ export const ReelDiscoveryPage: React.FC<ReelDiscoveryPageProps> = ({
                     <div className="w-8 h-8 rounded-xl bg-flatzy-yellow text-flatzy-navy flex items-center justify-center font-black text-sm mb-2">
                       <CheckCircle2 className="w-4 h-4" />
                     </div>
-                    <div className="font-extrabold text-xs text-flatzy-navy">Instant Inquiry</div>
+                    <div className="font-extrabold text-xs text-flatzy-navy">{t('reels.instantInquiry')}</div>
                     <p className="text-[11px] text-slate-500 leading-tight">
-                      Direct connection to verified brokers with transparent rent.
+                      {t('reels.instantInquiryDesc')}
                     </p>
                   </div>
                 </div>
@@ -99,13 +102,13 @@ export const ReelDiscoveryPage: React.FC<ReelDiscoveryPageProps> = ({
               <div className="lg:col-span-5 bg-flatzy-navy text-white rounded-3xl p-6 sm:p-7 space-y-4 shadow-soft text-left">
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-flatzy-yellow">
-                    Kolkata Rental Concierge
+                    {t('reels.conciergeBadge')}
                   </span>
                   <h3 className="text-lg font-black font-poppins text-white">
-                    Need a custom video tour?
+                    {t('reels.customTourTitle')}
                   </h3>
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    Have a specific society or building in New Town, Salt Lake, or Sector V you want us to film? Send us a message!
+                    {t('reels.customTourDesc')}
                   </p>
                 </div>
 
@@ -117,7 +120,7 @@ export const ReelDiscoveryPage: React.FC<ReelDiscoveryPageProps> = ({
                     className="w-full py-3 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-md"
                   >
                     <MessageSquare className="w-4 h-4" />
-                    <span>WhatsApp Flatzy Team</span>
+                    <span>{t('reels.whatsappTeam')}</span>
                   </a>
 
                   <button
@@ -125,7 +128,7 @@ export const ReelDiscoveryPage: React.FC<ReelDiscoveryPageProps> = ({
                     className="w-full py-2.5 px-4 rounded-2xl bg-white/10 hover:bg-white/20 text-slate-200 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
                   >
                     <Compass className="w-3.5 h-3.5 text-flatzy-yellow" />
-                    <span>Browse All 80+ Flats in Kolkata</span>
+                    <span>{t('reels.browseAll')}</span>
                   </button>
                 </div>
               </div>

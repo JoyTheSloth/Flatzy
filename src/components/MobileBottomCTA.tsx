@@ -1,13 +1,14 @@
 import React from 'react';
-import { Home, Compass, Film, Heart, Sparkles } from 'lucide-react';
+import { Home, Compass, PlusCircle, Briefcase, Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 interface MobileBottomCTAProps {
   currentTab: string;
   onNavigate: (tab: string) => void;
   onOpenInquiryModal: () => void;
-  savedCount: number;
-  onOpenSavedDrawer: () => void;
+  savedCount?: number;
+  onOpenSavedDrawer?: () => void;
+  onOpenRoleModal?: () => void;
   onExploreClick?: () => void; // for backwards compatibility
 }
 
@@ -15,8 +16,9 @@ export const MobileBottomCTA: React.FC<MobileBottomCTAProps> = ({
   currentTab,
   onNavigate,
   onOpenInquiryModal,
-  savedCount,
+  savedCount = 0,
   onOpenSavedDrawer,
+  onOpenRoleModal,
 }) => {
   const { language } = useLanguage();
   const isBn = language === 'bn';
@@ -43,23 +45,25 @@ export const MobileBottomCTA: React.FC<MobileBottomCTAProps> = ({
       isActive: currentTab === 'explore',
     },
     {
-      id: 'reels',
-      label: isBn ? 'রিলস' : 'Reels',
-      icon: Film,
+      id: 'list-flats',
+      label: isBn ? 'লিস্ট ফ্ল্যাট' : 'List Flats',
+      icon: PlusCircle,
       action: () => {
-        onNavigate('reels');
+        onNavigate('list-flats');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
-      isActive: currentTab === 'reels',
+      isActive: currentTab === 'list-flats',
       hasBadge: true,
     },
     {
-      id: 'saved',
-      label: isBn ? 'সেভড' : 'Saved',
-      icon: Heart,
-      action: onOpenSavedDrawer,
-      isActive: false,
-      count: savedCount,
+      id: 'brokers',
+      label: isBn ? 'ব্রোকার' : 'Brokers',
+      icon: Briefcase,
+      action: () => {
+        onNavigate('brokers');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+      isActive: currentTab === 'brokers' || currentTab === 'broker-detail',
     },
     {
       id: 'enquire',

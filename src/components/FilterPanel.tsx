@@ -7,11 +7,17 @@ import {
   IndianRupee, 
   Bed, 
   Home, 
-  Sparkles,
-  Users,
-  User,
-  Check
+  Sparkles, 
+  Users, 
+  User, 
+  Check, 
+  Train, 
+  Briefcase, 
+  Building2, 
+  Plane, 
+  GraduationCap 
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface FilterPanelProps {
   filters: FilterState;
@@ -26,6 +32,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   onReset,
   totalResults,
 }) => {
+  const { t } = useLanguage();
   const locationsList: LocationName[] = ['New Town', 'Shapoorji', 'Rajarhat', 'Salt Lake', 'Sector V'];
   const budgetOptions: { id: BudgetRange; label: string }[] = [
     { id: 'all', label: 'All Budgets' },
@@ -54,12 +61,29 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     'Visitor Parking'
   ];
 
+  const transitHubOptions = [
+    { id: 'Green Line Metro', label: 'Green Line Metro', icon: Train, badge: 'Sector V / Salt Lake' },
+    { id: 'Sector V IT Hub', label: 'Sector V Tech Park', icon: Briefcase, badge: 'DLF / Godrej' },
+    { id: 'New Town IT Hub', label: 'New Town IT Hub', icon: Building2, badge: 'Ecospace / Candor / TCS' },
+    { id: 'Airport & VIP Road', label: 'Airport & VIP Link', icon: Plane, badge: '10 mins to CCU' },
+    { id: 'Walk to College / Tech Park', label: 'Walk to College / Tech', icon: GraduationCap, badge: 'Techno / Amity / Aliah' }
+  ];
+
   const toggleLocation = (loc: LocationName) => {
     const exists = filters.locations.includes(loc);
     const updated = exists 
       ? filters.locations.filter((l) => l !== loc)
       : [...filters.locations, loc];
     onChange({ ...filters, locations: updated });
+  };
+
+  const toggleTransitHub = (hub: string) => {
+    const current = filters.transitHubs || [];
+    const exists = current.includes(hub);
+    const updated = exists 
+      ? current.filter((h) => h !== hub) 
+      : [...current, hub];
+    onChange({ ...filters, transitHubs: updated });
   };
 
   const toggleBhk = (bhk: string) => {
@@ -102,7 +126,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="w-4 h-4 text-flatzy-yellow" />
           <h3 className="font-extrabold text-sm uppercase tracking-wider text-flatzy-navy">
-            Filters ({totalResults} flats)
+            {t('filter.title')} ({totalResults} {t('filter.results')})
           </h3>
         </div>
 
@@ -111,7 +135,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-flatzy-coral transition-colors"
         >
           <RotateCcw className="w-3.5 h-3.5" />
-          <span>Reset</span>
+          <span>{t('filter.reset')}</span>
         </button>
       </div>
 
@@ -119,7 +143,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       <div className="space-y-2.5">
         <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
           <MapPin className="w-3.5 h-3.5 text-flatzy-yellow" />
-          <span>Location</span>
+          <span>{t('filter.location')}</span>
         </label>
         <div className="flex flex-wrap gap-1.5">
           {locationsList.map((loc) => {
@@ -141,11 +165,56 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         </div>
       </div>
 
+      {/* Transit & Kolkata Metro / IT Hub Filter */}
+      <div className="space-y-2.5 pt-4 border-t border-slate-100">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+            <Train className="w-3.5 h-3.5 text-emerald-600" />
+            <span>{t('filter.metroCommute')}</span>
+          </label>
+          {(filters.transitHubs?.length || 0) > 0 && (
+            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+              {filters.transitHubs?.length} {t('filter.active')}
+            </span>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          {transitHubOptions.map((hub) => {
+            const isSelected = (filters.transitHubs || []).includes(hub.id);
+            const Icon = hub.icon;
+            return (
+              <button
+                key={hub.id}
+                onClick={() => toggleTransitHub(hub.id)}
+                className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between gap-2 transition-all border ${
+                  isSelected
+                    ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950 font-bold shadow-xs ring-1 ring-emerald-400/40'
+                    : 'bg-slate-50/70 border-slate-200/70 text-slate-700 hover:bg-slate-100/80'
+                }`}
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <div className={`p-1 rounded-lg ${isSelected ? 'bg-emerald-600 text-white' : 'bg-white text-slate-500 shadow-2xs'}`}>
+                    <Icon className="w-3.5 h-3.5 shrink-0" />
+                  </div>
+                  <span className="truncate">{hub.label}</span>
+                </div>
+                <span className={`text-[10px] shrink-0 font-medium px-1.5 py-0.5 rounded ${
+                  isSelected ? 'bg-emerald-200/70 text-emerald-900' : 'bg-slate-200/60 text-slate-500'
+                }`}>
+                  {hub.badge}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* 2. Budget Range */}
       <div className="space-y-2.5 pt-4 border-t border-slate-100">
         <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
           <IndianRupee className="w-3.5 h-3.5 text-flatzy-yellow" />
-          <span>Monthly Budget</span>
+          <span>{t('filter.budget')}</span>
         </label>
         <div className="space-y-1.5">
           {budgetOptions.map((b) => (
@@ -171,9 +240,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center justify-between">
           <span className="flex items-center gap-1.5">
             <Bed className="w-3.5 h-3.5 text-flatzy-yellow" />
-            <span>Configuration</span>
+            <span>{t('filter.configuration')}</span>
           </span>
-          <span className="text-[10px] font-semibold text-slate-400">By capacity</span>
+          <span className="text-[10px] font-semibold text-slate-400">{t('filter.byCapacity')}</span>
         </label>
         <div className="grid grid-cols-4 gap-1.5">
           {bhkOptions.map((opt) => {
@@ -215,7 +284,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       <div className="space-y-2.5 pt-4 border-t border-slate-100">
         <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
           <Home className="w-3.5 h-3.5 text-flatzy-yellow" />
-          <span>Furnishing</span>
+          <span>{t('filter.furnishing')}</span>
         </label>
         <div className="space-y-1.5">
           {furnishingOptions.map((furn) => {
@@ -242,7 +311,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       <div className="space-y-2.5 pt-4 border-t border-slate-100">
         <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
           <Users className="w-3.5 h-3.5 text-flatzy-yellow" />
-          <span>Tenant Preference</span>
+          <span>{t('filter.tenantPref')}</span>
         </label>
         <div className="flex flex-wrap gap-1.5">
           {tenantOptions.map((tenant) => {
@@ -268,7 +337,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       <div className="space-y-2.5 pt-4 border-t border-slate-100">
         <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-flatzy-yellow" />
-          <span>Amenities</span>
+          <span>{t('filter.amenities')}</span>
         </label>
         <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
           {amenitiesList.map((amenity) => {

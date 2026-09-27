@@ -17,6 +17,10 @@ export interface Property {
   address: string;
   monthlyRent: number;
   securityDeposit: number;
+  salePrice?: number; // e.g. 14000000 (1.4 Cr)
+  listingType?: 'rent' | 'sale' | 'both';
+  saleTerms?: string;
+  rentTerms?: string;
   maintenanceCharges?: number;
   bedrooms: number;
   bathrooms: number;
@@ -44,6 +48,8 @@ export interface Property {
     type: 'college' | 'workplace' | 'transit' | 'lifestyle';
   }[];
   brokerReferenceId: string;
+  commuteHighlight?: string; // e.g. "🚇 3m walk to Sector V Metro (Green Line)"
+  transitTags?: string[]; // e.g. ['Green Line Metro', 'Sector V IT Hub']
   isFeatured?: boolean;
   viewsCount?: number;
   createdDate: string;
@@ -60,6 +66,7 @@ export interface FilterState {
   tenantType: TenantType[];
   propertyTypes: PropertyType[];
   amenities: string[];
+  transitHubs?: string[];
   sortBy: 'recommended' | 'rent_low' | 'rent_high' | 'newest';
 }
 
@@ -122,5 +129,14 @@ export interface FlatReelVideo {
   duration: string;
   tag: string;
   verified?: boolean;
+}
+
+export interface CommunityListing extends Property {
+  approvalStatus: 'pending' | 'approved' | 'rejected';
+  submittedByRole: 'Owner' | 'Broker';
+  submitterName: string;
+  submitterPhone: string;
+  submitterAgency?: string;
+  rawPastedText?: string;
 }
 

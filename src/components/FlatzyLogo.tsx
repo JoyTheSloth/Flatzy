@@ -21,27 +21,36 @@ export const FlatzyLogo: React.FC<FlatzyLogoProps> = ({
   };
 
   if (variant === 'badge') {
+    const isSm = size === 'sm';
     return (
       <div 
         onClick={onClick}
-        className={`inline-flex items-center gap-2 cursor-pointer transition-transform hover:scale-105 select-none ${className}`}
+        className={`inline-flex items-center gap-2 sm:gap-2.5 cursor-pointer transition-transform hover:scale-[1.02] select-none shrink-0 ${className}`}
       >
         <img 
           src="/flatzy-logo.jpg" 
           alt="Flatzy Kolkata" 
-          className={`rounded-2xl object-cover shadow-sm ${
-            size === 'sm' ? 'w-9 h-9' : size === 'md' ? 'w-11 h-11' : size === 'lg' ? 'w-14 h-14' : 'w-20 h-20'
+          className={`rounded-full object-cover shadow-2xs shrink-0 ring-1 ring-slate-900/10 ${
+            isSm 
+              ? 'w-8 h-8 sm:w-8.5 sm:h-8.5' 
+              : size === 'md' 
+              ? 'w-11 h-11' 
+              : size === 'lg' 
+              ? 'w-14 h-14' 
+              : 'w-20 h-20'
           }`}
         />
-        <div className="flex flex-col -space-y-0.5 text-left">
-          <div className="flex items-center">
-            <span className="font-extrabold tracking-tight text-flatzy-navy text-xl sm:text-2xl font-poppins">
-              Flatzy
-            </span>
-          </div>
-          <span className="text-[11px] font-medium text-slate-500 tracking-tight hidden sm:inline-block">
-            Skip the hassle.
+        <div className="flex flex-col justify-center text-left">
+          <span className={`font-black tracking-tight text-flatzy-navy font-poppins leading-none whitespace-nowrap ${
+            isSm ? 'text-base sm:text-lg' : 'text-xl sm:text-2xl'
+          }`}>
+            Flatzy
           </span>
+          {!isSm && (
+            <span className="text-[11px] font-medium text-slate-400 tracking-tight whitespace-nowrap leading-none mt-1">
+              Skip the hassle.
+            </span>
+          )}
         </div>
       </div>
     );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Property, LocationName, BudgetRange } from '../types/property';
 import { PROPERTIES_DATA } from '../data/properties';
 import { PropertyCard } from '../components/PropertyCard';
@@ -13,11 +13,15 @@ import {
   Flame, 
   Building, 
   Key, 
-  ChevronRight,
-  Users,
-  Heart,
-  Video,
-  Film
+  ChevronRight, 
+  ChevronLeft,
+  Users, 
+  Heart, 
+  Video, 
+  Film,
+  Star,
+  Play,
+  Bell
 } from 'lucide-react';
 
 interface HomePageProps {
@@ -27,6 +31,7 @@ interface HomePageProps {
   onSelectProperty: (property: Property) => void;
   onOpenInquiryModal: (property?: Property) => void;
   onApplyQuickFilter: (loc?: LocationName, budget?: BudgetRange) => void;
+  onOpenScheduleVisit?: (property: Property) => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
@@ -36,110 +41,362 @@ export const HomePage: React.FC<HomePageProps> = ({
   onSelectProperty,
   onOpenInquiryModal,
   onApplyQuickFilter,
+  onOpenScheduleVisit,
 }) => {
   const { t, language } = useLanguage();
+
+  // Active location selection
+  const [activeHeroLocation, setActiveHeroLocation] = useState<LocationName>('Shapoorji');
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  // Curated Rotating Hero Banners matching user design
+  const heroBanners = [
+    {
+      id: 'banner-avenida-villa',
+      title: 'Rare Luxury Courtyard Villa at Tata Avenida',
+      location: 'Avenida, New Town',
+      image: '/properties/avenida-courtyard/central-courtyard-patio.jpg',
+      propertyId: 'prop-avenida-courtyard-villa',
+    },
+    {
+      id: 'banner-1',
+      title: 'Modern Living in Prime Locations',
+      location: 'New Town, Kolkata',
+      image: '/hero-modern-living.jpg',
+      propertyId: 'prop-ideal-aquaview-2bhk',
+    },
+    {
+      id: 'banner-2',
+      title: 'Siddha Pines — Premium Gated Complex',
+      location: 'Rajarhat, Kolkata',
+      image: '/properties/siddha-pines/balcony-garden-view.jpg',
+      propertyId: 'prop-siddha-pines-3bhk-sale',
+    },
+    {
+      id: 'banner-3',
+      title: 'Resort-Style Living with Pool & Club',
+      location: 'Action Area II, New Town',
+      image: '/banner-ecospace-pool.jpg',
+      propertyId: 'prop-ps-one10-3bhk',
+    },
+    {
+      id: 'banner-4',
+      title: 'Ideal Aquaview — Scenic Lakefront Living',
+      location: 'Mahisbathan, Newtown',
+      image: '/properties/ideal-aquaview/living-balcony-view.jpg',
+      propertyId: 'prop-ideal-aquaview-2bhk',
+    },
+    {
+      id: 'banner-5',
+      title: 'Shapoorji Sukhobrishti — Smart & Walkable',
+      location: 'Action Area III, New Town',
+      image: '/properties/shapoorji/bedroom-ac.jpg',
+      propertyId: 'prop-shapoorji-2bhk-ac',
+    }
+  ];
+
+  // Automatic banner slide interval (every 3.6s)
+  useEffect(() => {
+    if (isPaused) return;
+    const interval = setInterval(() => {
+      setCurrentSlideIndex((prev) => (prev + 1) % heroBanners.length);
+    }, 3600);
+    return () => clearInterval(interval);
+  }, [isPaused, heroBanners.length]);
+
+  // Touch Swipe Handlers for Mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsPaused(true);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStart !== null && touchEnd !== null) {
+      const distance = touchStart - touchEnd;
+      if (distance > 40) {
+        // Swiped Left -> Next Banner
+        setCurrentSlideIndex((prev) => (prev + 1) % heroBanners.length);
+      } else if (distance < -40) {
+        // Swiped Right -> Prev Banner
+        setCurrentSlideIndex((prev) => (prev - 1 + heroBanners.length) % heroBanners.length);
+      }
+    }
+    setTouchStart(null);
+    setTouchEnd(null);
+    setIsPaused(false);
+  };
+
+  const handlePrevBanner = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentSlideIndex((prev) => (prev - 1 + heroBanners.length) % heroBanners.length);
+  };
+
+  const handleNextBanner = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentSlideIndex((prev) => (prev + 1) % heroBanners.length);
+  };
+
+  const handleBannerSelect = (propertyId: string) => {
+    const prop = PROPERTIES_DATA.find((p) => p.id === propertyId) || PROPERTIES_DATA[0];
+    onSelectProperty(prop);
+  };
+
+  // Reusable Auto-Sliding Banner Carousel Component
+  const renderBannerCarousel = () => (
+    <div 
+      className="space-y-3"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Sliding Carousel Viewport */}
+      <div className="group relative rounded-3xl overflow-hidden shadow-soft-lg hover:shadow-xl transition-all duration-300 border border-slate-200/90 bg-slate-900 aspect-[16/10] sm:aspect-[16/10] w-full select-none cursor-pointer">
+        
+        {/* Horizontal Slide Track */}
+        <div 
+          className="flex h-full transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
+          style={{ transform: `translateX(-${currentSlideIndex * 100}%)` }}
+        >
+          {heroBanners.map((banner, idx) => {
+            const isSaved = savedPropertyIds.includes(banner.propertyId);
+            return (
+              <div
+                key={banner.id}
+                onClick={() => handleBannerSelect(banner.propertyId)}
+                className="min-w-full w-full h-full relative shrink-0 overflow-hidden"
+              >
+                {/* Banner Photo */}
+                <img
+                  src={banner.image}
+                  alt={banner.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+
+                {/* Rich bottom gradient for crisp text legibility without obscuring the photo */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+
+                {/* Top-Right Sleek Translucent Heart Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleSave(banner.propertyId);
+                  }}
+                  className="absolute top-3.5 right-3.5 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/35 hover:bg-black/55 backdrop-blur-md flex items-center justify-center text-white hover:text-red-400 active:scale-90 transition-all cursor-pointer border border-white/20"
+                  title="Save flat"
+                >
+                  <Heart className={`w-4 h-4 ${isSaved ? 'text-red-500 fill-red-500' : 'text-white'}`} />
+                </button>
+
+                {/* Bottom Typography & Sleek Action Indicator (Uncluttered) */}
+                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 z-10 flex items-end justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    {/* Location Tag */}
+                    <div className="inline-flex items-center gap-1.5 text-xs text-flatzy-yellow font-bold mb-1 drop-shadow-xs">
+                      <MapPin className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{banner.location}</span>
+                    </div>
+                    {/* Title */}
+                    <div className="text-sm sm:text-base font-extrabold text-white font-poppins leading-snug drop-shadow-sm truncate">
+                      {banner.title}
+                    </div>
+                  </div>
+
+                  {/* Clean Circular Arrow Action */}
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/25 hover:bg-flatzy-yellow backdrop-blur-md border border-white/30 flex items-center justify-center shrink-0 text-white hover:text-flatzy-navy transition-all group-hover:scale-105">
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Hover Prev/Next Arrows (visible on desktop hover) */}
+        <button
+          onClick={handlePrevBanner}
+          className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs cursor-pointer"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <button
+          onClick={handleNextBanner}
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs cursor-pointer"
+          aria-label="Next slide"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+
+      </div>
+
+      {/* Carousel Pagination Dots */}
+      <div className="flex items-center justify-center gap-1.5 pt-0.5">
+        {heroBanners.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setCurrentSlideIndex(idx)}
+            className={`transition-all duration-300 rounded-full cursor-pointer ${
+              currentSlideIndex === idx
+                ? 'w-7 h-2 bg-flatzy-yellow'
+                : 'w-2 h-2 bg-slate-300 hover:bg-slate-400'
+            }`}
+            aria-label={`Slide ${idx + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
 
   // Show just the top 3 handpicked flats on the landing page for clarity
   const handpickedFlats = PROPERTIES_DATA.filter((p) => p.isFeatured).slice(0, 3);
 
   return (
-    <div className="relative overflow-hidden min-h-screen">
-      {/* Scenic Cityscape Background for Home Page */}
+    <div className="relative overflow-hidden min-h-screen bg-[#FFFDF7]">
+      {/* Scenic Subtle Cityscape Background */}
       <div 
-        className="absolute top-0 left-0 right-0 h-[780px] sm:h-[950px] bg-top bg-cover bg-no-repeat pointer-events-none opacity-25 sm:opacity-35"
+        className="absolute top-0 left-0 right-0 h-[700px] sm:h-[850px] bg-top bg-cover bg-no-repeat pointer-events-none opacity-20"
         style={{ backgroundImage: "url('/city-bg.png')" }}
       />
-      {/* Smooth downward fade to page surface */}
-      <div className="absolute top-0 left-0 right-0 h-[780px] sm:h-[950px] bg-gradient-to-b from-white/20 via-transparent to-[#FAF9F6] pointer-events-none" />
-      {/* Horizontal softening so background buildings don't clash with text on the left or foreground buildings on the right */}
-      <div className="absolute top-0 left-0 right-0 h-[780px] sm:h-[950px] bg-gradient-to-r from-[#FAF9F6]/90 via-transparent to-[#FAF9F6]/75 pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-[700px] sm:h-[850px] bg-gradient-to-b from-white/30 via-transparent to-[#FFFDF7] pointer-events-none" />
 
-      <div className="relative z-10 space-y-16 sm:space-y-24 pb-16 animate-in fade-in duration-300">
+      <div className="relative z-10 space-y-12 sm:space-y-20 pb-16 animate-in fade-in duration-300">
         
         {/* ========================================================================= */}
-        {/* SECTION 1: HERO & QUICK DISCOVERY SEARCH */}
+        {/* SECTION 1: HERO & PHONE UI BANNER CAROUSEL */}
         {/* ========================================================================= */}
-        <section className="relative pt-10 sm:pt-16 lg:pt-20 xl:pt-24 overflow-hidden">
-          {/* Soft ambient background glow */}
-          <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[90%] max-w-5xl h-72 bg-gradient-to-r from-flatzy-yellow/20 via-amber-100/30 to-orange-100/20 rounded-[80px] blur-3xl -z-10 pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center lg:items-end">
-            
-            {/* Left Column: Headline & Messaging */}
-            <div className="lg:col-span-6 xl:col-span-6 space-y-5 text-left z-10 lg:pb-4">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-flatzy-yellow/25 border border-flatzy-yellow/50 text-flatzy-navy text-xs font-bold shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-flatzy-navy animate-pulse" />
-                <span>{t('hero.badge')}</span>
-              </div>
-
-              <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-flatzy-navy font-poppins leading-[1.12]">
-                {t('hero.title1')} <br className="hidden sm:inline" />
-                <span>{t('hero.title2')}{' '}</span>
-                <span className="relative inline-block whitespace-nowrap mt-1">
-                  <span className="relative z-10">{t('hero.titleHighlight')}</span>
-                  <svg 
-                    className="absolute -bottom-1 sm:-bottom-1.5 left-0 w-full h-2.5 sm:h-3.5 text-flatzy-yellow pointer-events-none" 
-                    viewBox="0 0 100 12" 
-                    fill="none" 
-                    preserveAspectRatio="none"
-                  >
-                    <path 
-                      d="M3 8 C 30 2, 70 2, 97 7" 
-                      stroke="currentColor" 
-                      strokeWidth="5" 
-                      strokeLinecap="round" 
-                    />
-                  </svg>
-                </span>
-              </h1>
-
-              <p className="text-sm sm:text-base text-slate-600 font-normal leading-relaxed max-w-lg">
-                {t('hero.subtitle')}
-              </p>
-
-              {/* Action Buttons */}
-              <div className="pt-2 flex flex-wrap items-center gap-3">
-                <button
-                  onClick={() => onNavigate('explore')}
-                  className="px-7 py-3.5 rounded-full bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-extrabold text-xs sm:text-sm shadow-soft hover:shadow-yellow-glow transition-all active:scale-95 flex items-center gap-2 group"
-                >
-                  <Compass className="w-4 h-4" />
-                  <span>{t('hero.exploreCta')}</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </button>
-
-                <button
-                  onClick={() => onNavigate('how-it-works')}
-                  className="px-6 py-3.5 rounded-full bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs sm:text-sm border border-slate-200/90 shadow-soft transition-all"
-                >
-                  {t('hero.howItWorksCta')}
-                </button>
-              </div>
-
-            </div>
-
-            {/* Right Column: Visual Showcase directly on the Hero background */}
-            <div className="lg:col-span-6 xl:col-span-6 relative flex justify-center lg:justify-end items-end">
-              {/* Warm ambient aura matching the hero's palette */}
-              <div className="absolute w-80 sm:w-[500px] h-80 sm:h-[500px] bg-gradient-to-tr from-flatzy-yellow/25 via-amber-100/35 to-orange-100/20 rounded-full blur-3xl -z-10 pointer-events-none" />
-
-              <div className="relative w-full max-w-lg lg:max-w-xl xl:max-w-2xl select-none transform transition-transform duration-500 hover:scale-[1.02]">
-                <img
-                  src="/hero-buildings.png"
-                  alt="Modern Kolkata High-Rise Flats"
-                  className="w-full h-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.18)]"
-                  style={{
-                    maskImage: 'linear-gradient(to bottom, black 82%, transparent 99%)',
-                    WebkitMaskImage: 'linear-gradient(to bottom, black 82%, transparent 99%)',
-                  }}
-                />
-              </div>
-            </div>
-
+        <section className="relative pt-4 sm:pt-10 lg:pt-14 overflow-hidden">
+          
+          {/* Kolkata Howrah Bridge Sketch Art Blend in Upper-Right Background */}
+          <div className="absolute right-0 top-0 w-80 sm:w-[480px] lg:w-[620px] h-64 sm:h-80 lg:h-96 pointer-events-none overflow-hidden select-none z-0">
+            <img
+              src="/kolkata-howrah-sketch.jpg"
+              alt="Kolkata Landmark Howrah Bridge Art"
+              className="w-full h-full object-contain object-right-top opacity-40 sm:opacity-55 mix-blend-multiply"
+            />
+            {/* Feathering gradients for seamless blending */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FFFDF7] via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#FFFDF7] via-transparent to-transparent" />
           </div>
-        </div>
-      </section>
+
+          {/* Warm ambient aura */}
+          <div className="absolute top-8 right-10 w-72 h-72 bg-amber-200/25 rounded-full blur-3xl -z-10 pointer-events-none" />
+          <div className="absolute top-24 left-1/4 w-80 h-80 bg-flatzy-yellow/15 rounded-full blur-3xl -z-10 pointer-events-none" />
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
+              
+              {/* Left Column: Headlines, Trust Chips, Popular Locations, CTAs */}
+              <div className="lg:col-span-7 space-y-4 sm:space-y-5 text-left">
+                
+                {/* Pill Badge */}
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md text-slate-800 text-xs font-bold border border-amber-200/90 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>{t('hero.badge')}</span>
+                </div>
+
+                {/* Hero Title with curved yellow highlight stroke under 'think.' */}
+                <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-flatzy-navy font-poppins leading-[1.16]">
+                  {t('hero.title1')} <br />
+                  <span>{t('hero.title2')}{' '}</span>
+                  <span className="relative inline-block whitespace-nowrap">
+                    <span className="relative z-10">{t('hero.titleHighlight')}</span>
+                    <span className="absolute -bottom-1 sm:-bottom-1.5 left-0 right-0 h-2 sm:h-2.5 bg-flatzy-yellow rounded-full -rotate-1 -z-0" />
+                  </span>
+                </h1>
+
+                {/* Subtitle */}
+                <p className="text-xs sm:text-base text-slate-600 font-normal leading-relaxed max-w-lg">
+                  {t('hero.subtitle')}
+                </p>
+
+                {/* Popular Locations Horizontal Pills */}
+                <div className="space-y-2 pt-2">
+                  <div className="flex items-center justify-between max-w-lg">
+                    <span className="text-sm font-black text-flatzy-navy font-poppins">
+                      {t('hero.popularLocations')}
+                    </span>
+                    <button
+                      onClick={() => onNavigate('locations')}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer"
+                    >
+                      <span>{t('hero.viewAll')}</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                    {[
+                      { id: 'Shapoorji' as LocationName, label: 'Shapoorji' },
+                      { id: 'New Town' as LocationName, label: 'New Town' },
+                      { id: 'Sector V' as LocationName, label: 'Sector 5' },
+                      { id: 'Rajarhat' as LocationName, label: 'Rajarhat' },
+                    ].map((loc) => {
+                      const isActive = activeHeroLocation === loc.id;
+                      return (
+                        <button
+                          key={loc.id}
+                          onClick={() => {
+                            setActiveHeroLocation(loc.id);
+                            onApplyQuickFilter(loc.id);
+                          }}
+                          className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer ${
+                            isActive
+                              ? 'bg-flatzy-yellow text-flatzy-navy shadow-xs font-black'
+                              : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90'
+                          }`}
+                        >
+                          {loc.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Mobile View Banner Carousel: Rendered here on mobile right before the Action Buttons! */}
+                <div className="block lg:hidden pt-2">
+                  {renderBannerCarousel()}
+                </div>
+
+                {/* Action Buttons (Stacked on mobile & desktop) */}
+                <div className="space-y-2.5 pt-2 max-w-lg">
+                  <button
+                    onClick={() => onNavigate('explore')}
+                    className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-flatzy-yellow hover:bg-flatzy-yellowDark active:scale-[0.98] text-flatzy-navy font-black text-sm sm:text-base shadow-soft hover:shadow-yellow-glow transition-all flex items-center justify-center gap-2 group cursor-pointer"
+                  >
+                    <Compass className="w-4.5 h-4.5 text-flatzy-navy group-hover:rotate-45 transition-transform duration-300" />
+                    <span>{t('hero.exploreCta')}</span>
+                  </button>
+
+                  <button
+                    onClick={() => onNavigate('how-it-works')}
+                    className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-800 font-black text-sm sm:text-base border border-slate-200/90 shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <div className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center">
+                      <Play className="w-2.5 h-2.5 fill-white ml-0.5" />
+                    </div>
+                    <span>{t('hero.howItWorksCta')}</span>
+                  </button>
+                </div>
+
+              </div>
+
+              {/* Desktop View Banner Carousel: Rendered in right column on large screens */}
+              <div className="hidden lg:block lg:col-span-5 space-y-3.5">
+                {renderBannerCarousel()}
+              </div>
+
+            </div>
+          </div>
+        </section>
 
       {/* ========================================================================= */}
       {/* SECTION 2: HANDPICKED FLATS (Concise, clean 3 cards) */}
@@ -177,6 +434,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               isSaved={savedPropertyIds.includes(property.id)}
               onToggleSave={onToggleSave}
               onSelectProperty={onSelectProperty}
+              onScheduleVisit={onOpenScheduleVisit}
             />
           ))}
         </div>
