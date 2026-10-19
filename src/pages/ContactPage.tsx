@@ -15,10 +15,37 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    bhk: '2 BHK',
+    furnishing: 'Semi-Furnished',
     location: 'New Town',
     budget: '₹15,000 - ₹20,000',
     message: '',
   });
+
+  const getBudgetRangesForBhk = (bhk: string): string[] => {
+    if (bhk === '1 BHK') {
+      return [
+        '₹9,000 - ₹10,000 (Unfurnished)',
+        '₹10,000 - ₹13,000',
+        '₹13,000 - ₹16,000',
+        '₹16,000 - ₹20,000',
+      ];
+    }
+    if (bhk === '3 BHK') {
+      return [
+        '₹20,000 - ₹25,000',
+        '₹25,000 - ₹30,000',
+        '₹30,000 - ₹40,000',
+        '₹40,000 - ₹50,000',
+      ];
+    }
+    // Default: 2 BHK
+    return [
+      '₹15,000 - ₹20,000',
+      '₹20,000 - ₹25,000',
+      '₹25,000 - ₹30,000',
+    ];
+  };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -30,6 +57,8 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
     await submitLeadToGoogleSheet({
       fullName: formData.name,
       phone: formData.phone,
+      lookingForBhk: formData.bhk,
+      furnishingStatus: formData.furnishing,
       location: formData.location,
       budget: formData.budget,
       tenantCategory: 'Direct Contact Form',
@@ -54,7 +83,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
   };
 
   const handleWhatsApp = () => {
-    const text = `🏠 *CONTACT INQUIRY — FLATZY KOLKATA*\n━━━━━━━━━━━━━━━━━━━━━━\n👤 *Name:* ${formData.name || 'Visitor'}\n📱 *Phone:* ${formData.phone || 'N/A'}\n📍 *Location:* ${formData.location}\n💰 *Budget:* ${formData.budget}\n${formData.message ? `📝 *Message:* ${formData.message}\n` : ''}━━━━━━━━━━━━━━━━━━━━━━\nPlease connect me with verified flat options!`;
+    const text = `🏠 *CONTACT INQUIRY — FLATZY KOLKATA*\n━━━━━━━━━━━━━━━━━━━━━━\n👤 *Name:* ${formData.name || 'Visitor'}\n📱 *Phone:* ${formData.phone || 'N/A'}\n🏢 *BHK:* ${formData.bhk}\n🛋️ *Furnishing:* ${formData.furnishing}\n📍 *Location:* ${formData.location}\n💰 *Budget:* ${formData.budget}\n${formData.message ? `📝 *Message:* ${formData.message}\n` : ''}━━━━━━━━━━━━━━━━━━━━━━\nPlease connect me with verified flat options!`;
     window.open(getWhatsAppUrl(text), '_blank', 'noopener,noreferrer');
   };
 
@@ -198,49 +227,98 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Looking for BHK */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
+                Looking for BHK *
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {['1 BHK', '2 BHK', '3 BHK'].map((bhk) => (
+                  <button
+                    key={bhk}
+                    type="button"
+                    onClick={() => {
+                      const newBudgets = getBudgetRangesForBhk(bhk);
+                      setFormData({
+                        ...formData,
+                        bhk,
+                        budget: newBudgets[0],
+                      });
+                    }}
+                    className={`py-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center ${
+                      formData.bhk === bhk
+                        ? 'bg-flatzy-yellow text-flatzy-navy border-flatzy-yellowDark shadow-xs font-black'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>{bhk}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Location & Furnishing (Strictly Side by Side on all screen sizes) */}
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
-                  Location
+                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block truncate">
+                  Location *
                 </label>
                 <select
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow font-medium cursor-pointer"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 sm:px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow font-medium cursor-pointer truncate"
                 >
                   <option value="New Town">New Town</option>
                   <option value="Shapoorji">Shapoorji</option>
-                  <option value="Rajarhat">Rajarhat</option>
-                  <option value="Salt Lake">Salt Lake</option>
                   <option value="Sector V">Sector V</option>
+                  <option value="Other areas in Kolkata">Other areas in Kolkata</option>
                 </select>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
-                  Budget
+                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block truncate">
+                  Furnishing *
                 </label>
                 <select
-                  value={formData.budget}
-                  onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow font-medium cursor-pointer"
+                  value={formData.furnishing}
+                  onChange={(e) => setFormData({ ...formData, furnishing: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 sm:px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow font-medium cursor-pointer"
                 >
-                  <option value="Under ₹10,000">Under ₹10,000</option>
-                  <option value="₹10,000 - ₹15,000">₹10,000 – ₹15,000</option>
-                  <option value="₹15,000 - ₹20,000">₹15,000 – ₹20,000</option>
-                  <option value="₹20,000 - ₹30,000">₹20,000 – ₹30,000</option>
-                  <option value="₹30,000+">₹30,000+</option>
+                  <option value="Furnished">Furnished</option>
+                  <option value="Semi-Furnished">Semi-Furnished</option>
+                  <option value="Unfurnished">Unfurnished</option>
                 </select>
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-3.5 rounded-full bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-black text-xs uppercase tracking-wider shadow-soft transition-all"
-            >
-              {isSubmitting ? 'Connecting...' : t('contact.submitBtn')}
-            </button>
+            {/* Dynamic Budget Selection based on BHK */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
+                Budget Range ({formData.bhk}) *
+              </label>
+              <select
+                value={formData.budget}
+                onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow font-medium cursor-pointer"
+              >
+                {getBudgetRangesForBhk(formData.bhk).map((range) => (
+                  <option key={range} value={range}>
+                    {range}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-[#25D366] to-emerald-600 hover:from-emerald-400 hover:via-[#25D366] hover:to-emerald-500 text-white font-black text-sm tracking-wider uppercase shadow-lg shadow-emerald-500/25 transition-all duration-300 active:scale-98 flex items-center justify-center gap-2 group disabled:opacity-50"
+              >
+                <Send className="w-4 h-4 transition-transform group-hover:translate-x-0.5 text-white" />
+                <span>{isSubmitting ? 'Connecting...' : t('contact.submitBtn')}</span>
+              </button>
+            </div>
           </form>
         )}
       </div>

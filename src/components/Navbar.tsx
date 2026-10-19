@@ -147,31 +147,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Language Toggle: EN / বাংলা (locked to h-9) */}
           <LanguageToggle />
 
-          {/* Instagram quick icon (locked to h-9 w-9) */}
+          {/* Instagram quick icon (locked to h-9 w-9, visible across mobile and desktop) */}
           <a
             href="https://instagram.com/flatzykolkata"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden xl:inline-flex items-center justify-center w-9 h-9 rounded-full bg-slate-50 hover:bg-pink-50 text-slate-500 hover:text-pink-600 border border-slate-200/80 hover:border-pink-200/80 transition-all hover:scale-105"
+            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-slate-50 hover:bg-pink-50 text-slate-500 hover:text-pink-600 border border-slate-200/80 hover:border-pink-200/80 transition-all hover:scale-105 active:scale-95"
             title="Follow @flatzykolkata on Instagram"
+            aria-label="Follow Flatzy Kolkata on Instagram"
           >
             <Instagram className="w-4 h-4 text-pink-600" />
           </a>
-
-          {/* Saved Flats Heart Button (locked to h-9 w-9) */}
-          <button
-            onClick={onOpenSavedDrawer}
-            aria-label="View saved flats"
-            className="relative w-9 h-9 rounded-full bg-slate-50 hover:bg-rose-50 text-slate-600 hover:text-rose-500 border border-slate-200/80 hover:border-rose-200/80 transition-all flex items-center justify-center hover:scale-105"
-            title="Saved flats"
-          >
-            <Heart className={`w-4 h-4 ${savedCount > 0 ? 'fill-flatzy-coral text-flatzy-coral' : 'text-slate-600'}`} />
-            {savedCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-flatzy-coral text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-xs animate-pulse">
-                {savedCount}
-              </span>
-            )}
-          </button>
 
           {/* Subtle vertical hairline divider */}
           <div className="hidden lg:block h-5 w-px bg-slate-200/80 mx-0.5" />

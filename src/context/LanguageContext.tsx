@@ -25,9 +25,9 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Hero
     'hero.badge': 'Kolkata’s 1st Rental Discovery',
-    'hero.title1': 'Your next flat is',
-    'hero.title2': 'closer than you',
-    'hero.titleHighlight': 'think.',
+    'hero.title1': 'Your one-stop solution',
+    'hero.title2': 'for',
+    'hero.titleHighlight': 'flat hunting.',
     'hero.subtitle': 'Find rental flats across Kolkata without endless searching or calling brokers. Curated flats for students, bachelors, tech professionals and families.',
     'hero.exploreCta': 'Explore Flats',
     'hero.howItWorksCta': 'How Flatzy Works',

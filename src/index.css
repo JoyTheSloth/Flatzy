@@ -114,3 +114,17 @@
   font-family: 'Hind Siliguri', 'Poppins', sans-serif !important;
   letter-spacing: normal !important;
 }
+
+/* Custom styled modern date input */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 4px;
+  filter: invert(0.35) sepia(100%) saturate(300%) hue-rotate(10deg);
+  transition: all 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  background-color: rgba(255, 200, 0, 0.2);
+  transform: scale(1.1);
+}

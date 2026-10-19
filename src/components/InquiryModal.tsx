@@ -387,18 +387,17 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
                 </span>
               </button>
 
-              {/* Main Submit Button */}
-              <div className="pt-1 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <div className="pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-2.5 sm:py-3 rounded-xl bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-black text-xs uppercase tracking-wider shadow-xs transition-all active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  className="w-full py-3.5 sm:py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-400 via-flatzy-yellow to-amber-500 hover:from-amber-300 hover:via-flatzy-yellow hover:to-amber-400 text-flatzy-navy font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-amber-500/25 transition-all duration-300 active:scale-95 flex items-center justify-center gap-2 group disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <span>{isBn ? 'পাঠানো হচ্ছে...' : 'Sending inquiry...'}</span>
                   ) : (
                     <>
-                      <Send className="w-3.5 h-3.5" />
+                      <Send className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
                       <span>{isBn ? 'ইনকোয়ারি পাঠান' : 'Submit Inquiry'}</span>
                     </>
                   )}

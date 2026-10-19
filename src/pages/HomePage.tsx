@@ -159,7 +159,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       onTouchEnd={handleTouchEnd}
     >
       {/* Sliding Carousel Viewport */}
-      <div className="group relative rounded-3xl overflow-hidden shadow-soft-lg hover:shadow-xl transition-all duration-300 border border-slate-200/90 bg-slate-900 aspect-[16/10] sm:aspect-[16/10] w-full select-none cursor-pointer">
+      <div className="group relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-soft-lg hover:shadow-xl transition-all duration-300 border border-slate-200/90 bg-slate-900 aspect-[16/9] sm:aspect-[16/10] w-full select-none cursor-pointer">
         
         {/* Horizontal Slide Track */}
         <div 
@@ -295,21 +295,21 @@ export const HomePage: React.FC<HomePageProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
               
               {/* Left Column: Headlines, Trust Chips, Popular Locations, CTAs */}
-              <div className="lg:col-span-7 space-y-4 sm:space-y-5 text-left">
+              <div className="lg:col-span-7 space-y-2.5 sm:space-y-4 text-left pt-3 sm:pt-5">
                 
                 {/* Pill Badge */}
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md text-slate-800 text-xs font-bold border border-amber-200/90 shadow-2xs">
+                <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md text-slate-800 text-[11px] sm:text-xs font-bold border border-amber-200/90 shadow-2xs mt-1 sm:mt-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span>{t('hero.badge')}</span>
                 </div>
 
-                {/* Hero Title with curved yellow highlight stroke under 'think.' */}
-                <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-flatzy-navy font-poppins leading-[1.16]">
+                {/* Hero Title with curved yellow highlight stroke */}
+                <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-flatzy-navy font-poppins leading-[1.12]">
                   {t('hero.title1')} <br />
                   <span>{t('hero.title2')}{' '}</span>
                   <span className="relative inline-block whitespace-nowrap">
                     <span className="relative z-10">{t('hero.titleHighlight')}</span>
-                    <span className="absolute -bottom-1 sm:-bottom-1.5 left-0 right-0 h-2 sm:h-2.5 bg-flatzy-yellow rounded-full -rotate-1 -z-0" />
+                    <span className="absolute -bottom-1 sm:-bottom-2 left-0 right-0 h-2.5 sm:h-3.5 bg-flatzy-yellow rounded-full -rotate-1 -z-0" />
                   </span>
                 </h1>
 
@@ -318,10 +318,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                   {t('hero.subtitle')}
                 </p>
 
-                {/* Popular Locations Horizontal Pills */}
-                <div className="space-y-2 pt-2">
+                {/* Popular Locations Horizontal Pills with dedicated top margin */}
+                <div className="space-y-1.5 pt-3 sm:pt-4 mt-3 sm:mt-4 border-t border-amber-100/60">
                   <div className="flex items-center justify-between max-w-lg">
-                    <span className="text-sm font-black text-flatzy-navy font-poppins">
+                    <span className="text-xs sm:text-sm font-black text-flatzy-navy font-poppins">
                       {t('hero.popularLocations')}
                     </span>
                     <button
@@ -366,24 +366,24 @@ export const HomePage: React.FC<HomePageProps> = ({
                   {renderBannerCarousel()}
                 </div>
 
-                {/* Action Buttons (Stacked on mobile & desktop) */}
-                <div className="space-y-2.5 pt-2 max-w-lg">
+                {/* Action Buttons (2-column on mobile & tablet, stacked/clean on larger screens) */}
+                <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-3 pt-2 max-w-lg">
                   <button
                     onClick={() => onNavigate('explore')}
-                    className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-flatzy-yellow hover:bg-flatzy-yellowDark active:scale-[0.98] text-flatzy-navy font-black text-sm sm:text-base shadow-soft hover:shadow-yellow-glow transition-all flex items-center justify-center gap-2 group cursor-pointer"
+                    className="w-full py-3 sm:py-3.5 px-3 sm:px-6 rounded-2xl sm:rounded-full bg-flatzy-yellow hover:bg-flatzy-yellowDark active:scale-[0.98] text-flatzy-navy font-black text-xs sm:text-sm shadow-soft hover:shadow-yellow-glow transition-all flex items-center justify-center gap-1.5 sm:gap-2 group cursor-pointer"
                   >
-                    <Compass className="w-4.5 h-4.5 text-flatzy-navy group-hover:rotate-45 transition-transform duration-300" />
-                    <span>{t('hero.exploreCta')}</span>
+                    <Compass className="w-4 h-4 text-flatzy-navy group-hover:rotate-45 transition-transform duration-300 shrink-0" />
+                    <span className="truncate">{t('hero.exploreCta')}</span>
                   </button>
 
                   <button
                     onClick={() => onNavigate('how-it-works')}
-                    className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-800 font-black text-sm sm:text-base border border-slate-200/90 shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-3 sm:py-3.5 px-3 sm:px-6 rounded-2xl sm:rounded-full bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-800 font-black text-xs sm:text-sm border border-slate-200/90 shadow-2xs transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer"
                   >
-                    <div className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center">
-                      <Play className="w-2.5 h-2.5 fill-white ml-0.5" />
+                    <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0">
+                      <Play className="w-2 h-2 fill-white ml-0.5" />
                     </div>
-                    <span>{t('hero.howItWorksCta')}</span>
+                    <span className="truncate">{t('hero.howItWorksCta')}</span>
                   </button>
                 </div>
 

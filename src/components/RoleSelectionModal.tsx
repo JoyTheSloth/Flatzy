@@ -35,6 +35,7 @@ export interface BuyerRequirementData {
   lookingForBhk: string;
   budget: string;
   location: string;
+  furnishingStatus: 'Furnished' | 'Semi-Furnished' | 'Unfurnished';
   shiftingDate: string;
   tenantCategory: 'Family' | 'Bachelor';
 }
@@ -93,9 +94,36 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
     lookingForBhk: '2 BHK',
     budget: '₹15,000 - ₹20,000',
     location: 'New Town',
+    furnishingStatus: 'Semi-Furnished',
     shiftingDate: '',
     tenantCategory: 'Bachelor',
   });
+
+  // Helper for dynamic budget ranges based on BHK selection
+  const getBudgetRangesForBhk = (bhk: string): string[] => {
+    if (bhk === '1 BHK') {
+      return [
+        '₹9,000 - ₹10,000 (Unfurnished)',
+        '₹10,000 - ₹13,000',
+        '₹13,000 - ₹16,000',
+        '₹16,000 - ₹20,000',
+      ];
+    }
+    if (bhk === '3 BHK') {
+      return [
+        '₹20,000 - ₹25,000',
+        '₹25,000 - ₹30,000',
+        '₹30,000 - ₹40,000',
+        '₹40,000 - ₹50,000',
+      ];
+    }
+    // Default: 2 BHK
+    return [
+      '₹15,000 - ₹20,000',
+      '₹20,000 - ₹25,000',
+      '₹25,000 - ₹30,000',
+    ];
+  };
 
   // Broker / Owner Form State
   const [brokerData, setBrokerData] = useState<BrokerRequirementData>({
@@ -117,6 +145,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
           lookingForBhk: targetProperty.bhkType || prev.lookingForBhk,
           budget: `₹${targetProperty.monthlyRent.toLocaleString('en-IN')}/mo`,
           location: targetProperty.location || prev.location,
+          furnishingStatus: (targetProperty.furnishing === 'Fully Furnished' ? 'Furnished' : targetProperty.furnishing === 'Unfurnished' ? 'Unfurnished' : 'Semi-Furnished'),
         }));
         setCurrentView('buyer');
       } else {
@@ -161,6 +190,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
       `• *WhatsApp:* +91 ${data.phone}\n` +
       (data.companyName ? `• *Company / College:* ${data.companyName}\n` : '') +
       (!targetProperty ? `• *Looking for:* ${data.lookingForBhk}\n` : '') +
+      (!targetProperty ? `• *Furnishing:* ${data.furnishingStatus}\n` : '') +
       (!targetProperty ? `• *Budget:* ${data.budget}\n` : '') +
       (!targetProperty ? `• *Preferred Area:* ${data.location}\n` : '') +
       (data.shiftingDate ? `• *Expected Shifting:* ${data.shiftingDate}\n` : '') +
@@ -214,6 +244,7 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
       lookingForBhk: buyerData.lookingForBhk,
       budget: buyerData.budget,
       location: buyerData.location,
+      furnishingStatus: buyerData.furnishingStatus,
       shiftingDate: buyerData.shiftingDate,
       tenantCategory: buyerData.tenantCategory,
       role: 'Renter',
@@ -300,8 +331,9 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
         </div>
 
         {/* Modal Top Bar */}
-        <div className="px-5 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2">
+        <div className="relative px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between shrink-0">
+          {/* Left Action (Back button or empty spacer) */}
+          <div className="w-8 flex items-center justify-start z-10">
             {currentView !== 'selection' && (
               <button
                 type="button"
@@ -312,28 +344,41 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                     setCurrentView('selection');
                   }
                 }}
-                className="p-1 -ml-1 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-200/60 transition-colors"
+                className="p-1.5 -ml-1 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-200/60 transition-colors"
                 title="Back"
               >
                 <ArrowLeft className="w-4 h-4" />
               </button>
             )}
-            <div className="flex items-center gap-1.5 text-xs font-black text-flatzy-navy">
-              <Sparkles className="w-3.5 h-3.5 text-flatzy-yellow animate-pulse" />
-              <span>Flatzy Kolkata</span>
-            </div>
           </div>
 
-          {/* Close Button */}
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 transition-colors"
-            title="Close"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          {/* Centralized Big Title */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none px-10">
+            <h3 className="text-sm sm:text-base font-black text-flatzy-navy font-poppins tracking-tight truncate pointer-events-auto">
+              {currentView === 'buyer' 
+                ? (targetProperty 
+                    ? (isBn ? 'ফ্ল্যাট ইনকোয়ারি' : 'Enquire About This Flat') 
+                    : (isBn ? 'আপনার পছন্দ জানান' : 'Your Flat Requirements'))
+                : currentView === 'broker'
+                ? (isBn ? 'লিস্টিং পার্টনার' : 'Partner Listing Portal')
+                : currentView === 'success'
+                ? (isBn ? 'ইনকোয়ারি সম্পন্ন' : 'Inquiry Dispatched')
+                : (isBn ? 'স্বাগতম' : 'Quick Enquiry')}
+            </h3>
+          </div>
+
+          {/* Right Action (Close Button) */}
+          <div className="w-8 flex items-center justify-end z-10">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 transition-colors"
+              title="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* ---------------------------------------------------- */}
@@ -653,32 +698,22 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
         {/* VIEW 3: BUYER / RENTER REQUIREMENT FORM */}
         {/* ---------------------------------------------------- */}
         {currentView === 'buyer' && (
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 scrollbar-thin">
-            <div className="text-center space-y-0.5">
-              <h3 className="text-lg font-black text-flatzy-navy font-poppins flex items-center justify-center gap-1.5">
-                <Home className="w-4 h-4 text-flatzy-navy" />
-                <span>
-                  {targetProperty 
-                    ? (isBn ? 'ফ্ল্যাট ইনকোয়ারি' : 'Enquire About This Flat') 
-                    : (isBn ? 'আপনার পছন্দ জানান' : 'Your Flat Requirements')}
-                </span>
-              </h3>
-              <p className="text-xs text-slate-500">
-                {targetProperty 
-                  ? `${targetProperty.subLocation}, ${targetProperty.location}` 
-                  : (isBn ? 'মাত্র কয়েকটি সাধারণ তথ্য দিন' : 'Quick details to connect directly on WhatsApp')}
+          <div className="flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-2 scrollbar-thin">
+            {!targetProperty && (
+              <p className="text-[11px] text-slate-500 text-center -mt-0.5 mb-1">
+                {isBn ? 'মাত্র কয়েকটি সাধারণ তথ্য দিন — সরাসরি হোয়াটসঅ্যাপে যোগাযোগ করুন' : 'Share your preferences to connect directly on WhatsApp'}
               </p>
-            </div>
+            )}
 
             {targetProperty && (
-              <div className="p-2.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 flex items-center gap-2.5 text-left">
+              <div className="p-2 rounded-xl bg-amber-50/80 border border-amber-200/80 flex items-center gap-2 text-left">
                 <img 
                   src={targetProperty.featuredImage} 
                   alt={targetProperty.title} 
-                  className="w-11 h-11 rounded-xl object-cover shrink-0 border border-amber-200" 
+                  className="w-9 h-9 rounded-lg object-cover shrink-0 border border-amber-200" 
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="font-bold text-xs text-slate-900 truncate">{targetProperty.title}</div>
+                  <div className="font-bold text-xs text-slate-900 truncate leading-snug">{targetProperty.title}</div>
                   <div className="text-[10px] text-slate-600">
                     {targetProperty.bhkType} • <span className="font-black text-flatzy-navy">₹{targetProperty.monthlyRent.toLocaleString('en-IN')}/mo</span>
                   </div>
@@ -689,13 +724,13 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
               </div>
             )}
 
-            <form onSubmit={handleBuyerSubmit} className="space-y-3">
+            <form onSubmit={handleBuyerSubmit} className="space-y-2">
               
-              {/* Name & Phone */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                    <User className="w-3.5 h-3.5 text-slate-500" />
+              {/* Name & Phone (Compact) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="space-y-0.5">
+                  <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                    <User className="w-3 h-3 text-slate-500" />
                     <span>Your Name *</span>
                   </label>
                   <input
@@ -704,17 +739,17 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                     value={buyerData.fullName}
                     onChange={(e) => setBuyerData({ ...buyerData, fullName: e.target.value })}
                     placeholder="e.g. Rahul Sen"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow focus:bg-white transition-colors"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow focus:bg-white transition-colors"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                    <Phone className="w-3.5 h-3.5 text-slate-500" />
+                <div className="space-y-0.5">
+                  <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                    <Phone className="w-3 h-3 text-slate-500" />
                     <span>WhatsApp Number *</span>
                   </label>
                   <div className="relative flex items-center">
-                    <span className="absolute left-2.5 text-xs font-bold text-slate-400 pointer-events-none">
+                    <span className="absolute left-2.5 text-[11px] font-bold text-slate-400 pointer-events-none">
                       +91
                     </span>
                     <input
@@ -723,135 +758,235 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
                       value={buyerData.phone}
                       onChange={(e) => setBuyerData({ ...buyerData, phone: e.target.value })}
                       placeholder="98300 12345"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow focus:bg-white transition-colors"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-2.5 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow focus:bg-white transition-colors"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Company / College Name */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                  <Building2 className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Company or College Name</span>
+              {/* Looking for (1 BHK / 2 BHK / 3 BHK) with Tactile Micro-Interactions */}
+              <div className="space-y-0.5">
+                <label className="text-[11px] font-bold text-slate-700 flex items-center justify-between">
+                  <span className="flex items-center gap-1">
+                    <Layers className="w-3 h-3 text-slate-500" />
+                    <span>Looking for BHK *</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">Tap to switch</span>
                 </label>
-                <input
-                  type="text"
-                  value={buyerData.companyName}
-                  onChange={(e) => setBuyerData({ ...buyerData, companyName: e.target.value })}
-                  placeholder="e.g. TCS, Cognizant, Wipro, Amity, etc."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow focus:bg-white transition-colors"
-                />
-              </div>
-
-              {/* Looking for (1 BHK / 2 BHK / 3 BHK) */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                  <Layers className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Looking for *</span>
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {['1 BHK', '2 BHK', '3 BHK'].map((bhk) => (
-                    <button
-                      key={bhk}
-                      type="button"
-                      onClick={() => setBuyerData({ ...buyerData, lookingForBhk: bhk })}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1 ${
-                        buyerData.lookingForBhk === bhk
-                          ? 'bg-flatzy-yellow text-flatzy-navy border-flatzy-yellowDark shadow-xs font-black'
-                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      <span>{bhk}</span>
-                    </button>
-                  ))}
+                <div className="grid grid-cols-3 gap-1.5 p-0.5">
+                  {['1 BHK', '2 BHK', '3 BHK'].map((bhk) => {
+                    const isSelected = buyerData.lookingForBhk === bhk;
+                    return (
+                      <button
+                        key={bhk}
+                        type="button"
+                        onClick={() => {
+                          const newBudgets = getBudgetRangesForBhk(bhk);
+                          setBuyerData({
+                            ...buyerData,
+                            lookingForBhk: bhk,
+                            budget: newBudgets[0],
+                          });
+                        }}
+                        className={`py-1.5 rounded-xl text-xs font-bold border transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer select-none active:scale-90 active:duration-75 ${
+                          isSelected
+                            ? 'bg-flatzy-yellow text-flatzy-navy border-amber-400 shadow-sm font-black scale-[1.03] ring-2 ring-amber-300/60'
+                            : 'bg-slate-50 text-slate-700 border-slate-200/90 hover:bg-slate-100 hover:border-slate-300 hover:scale-[1.01]'
+                        }`}
+                      >
+                        {isSelected && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-flatzy-navy animate-in zoom-in-50 duration-150" />
+                        )}
+                        <span>{bhk}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Location & Budget */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-slate-500" />
+              {/* Location & Furnishing (Strictly Side by Side) */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-0.5">
+                  <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1 truncate">
+                    <MapPin className="w-3 h-3 text-slate-500 shrink-0" />
                     <span>Location *</span>
                   </label>
                   <select
                     value={buyerData.location}
                     onChange={(e) => setBuyerData({ ...buyerData, location: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow focus:bg-white transition-colors"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow focus:bg-white transition-colors cursor-pointer truncate"
                   >
                     <option value="New Town">New Town</option>
-                    <option value="Rajarhat">Rajarhat</option>
-                    <option value="Salt Lake">Salt Lake</option>
-                    <option value="Sector V">Sector V</option>
                     <option value="Shapoorji">Shapoorji</option>
-                    <option value="South Kolkata">South Kolkata</option>
-                    <option value="Other Area">Other Kolkata Area</option>
+                    <option value="Sector V">Sector V</option>
+                    <option value="Other areas in Kolkata">Other areas in Kolkata</option>
                   </select>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                    <Coins className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Budget *</span>
+                <div className="space-y-0.5">
+                  <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1 truncate">
+                    <Home className="w-3 h-3 text-slate-500 shrink-0" />
+                    <span>Furnishing *</span>
                   </label>
                   <select
-                    value={buyerData.budget}
-                    onChange={(e) => setBuyerData({ ...buyerData, budget: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow focus:bg-white transition-colors"
+                    value={buyerData.furnishingStatus}
+                    onChange={(e) => setBuyerData({ ...buyerData, furnishingStatus: e.target.value as any })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow focus:bg-white transition-colors cursor-pointer"
                   >
-                    <option value="Under ₹10,000">Under ₹10,000</option>
-                    <option value="₹10,000 - ₹15,000">₹10,000 - ₹15,000</option>
-                    <option value="₹15,000 - ₹20,000">₹15,000 - ₹20,000</option>
-                    <option value="₹20,000 - ₹30,000">₹20,000 - ₹30,000</option>
-                    <option value="₹30,000+">₹30,000+</option>
+                    <option value="Furnished">Furnished</option>
+                    <option value="Semi-Furnished">Semi-Furnished</option>
+                    <option value="Unfurnished">Unfurnished</option>
                   </select>
                 </div>
               </div>
 
-              {/* Shifting Date & Family or Bachelor */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Expected Shifting Date</span>
-                  </label>
+              {/* Budget Range (Dynamically tailored to selected BHK) */}
+              <div className="space-y-0.5">
+                <label className="text-[11px] font-bold text-slate-700 flex items-center justify-between">
+                  <span className="flex items-center gap-1">
+                    <Coins className="w-3 h-3 text-slate-500" />
+                    <span>Budget Range ({buyerData.lookingForBhk}) *</span>
+                  </span>
+                </label>
+                <select
+                  value={buyerData.budget}
+                  onChange={(e) => setBuyerData({ ...buyerData, budget: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow focus:bg-white transition-colors cursor-pointer"
+                >
+                  {getBudgetRangesForBhk(buyerData.lookingForBhk).map((range) => (
+                    <option key={range} value={range}>
+                      {range}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Shifting Date & Family or Bachelor (Compact side-by-side) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {/* Custom Pretty Yellow Calendar Box */}
+                <div className="p-2 rounded-xl bg-amber-50/60 border border-amber-200/80 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-black text-flatzy-navy flex items-center gap-1 font-poppins">
+                      <div className="w-4 h-4 rounded-md bg-flatzy-yellow text-flatzy-navy flex items-center justify-center shadow-2xs">
+                        <Calendar className="w-2.5 h-2.5 text-flatzy-navy" />
+                      </div>
+                      <span>Shifting Date</span>
+                    </label>
+                    {buyerData.shiftingDate && (
+                      <button
+                        type="button"
+                        onClick={() => setBuyerData({ ...buyerData, shiftingDate: '' })}
+                        className="text-[9px] font-bold text-amber-700 hover:text-amber-900 bg-amber-100/80 px-1 py-0.5 rounded transition-colors"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+
                   <input
                     type="date"
+                    min={new Date().toISOString().split('T')[0]}
                     value={buyerData.shiftingDate}
                     onChange={(e) => setBuyerData({ ...buyerData, shiftingDate: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-flatzy-yellow focus:bg-white transition-colors"
+                    className="w-full bg-white border border-amber-300 hover:border-flatzy-yellow focus:border-flatzy-navy rounded-lg px-2 py-1 text-xs text-flatzy-navy font-bold focus:outline-none transition-all shadow-2xs cursor-pointer"
                   />
+
+                  {/* Quick Timing Chips */}
+                  <div className="grid grid-cols-4 gap-1">
+                    {[
+                      { 
+                        label: 'Now', 
+                        getVal: () => new Date().toISOString().split('T')[0] 
+                      },
+                      { 
+                        label: '7 Days', 
+                        getVal: () => {
+                          const d = new Date();
+                          d.setDate(d.getDate() + 7);
+                          return d.toISOString().split('T')[0];
+                        } 
+                      },
+                      { 
+                        label: (() => {
+                          const d = new Date();
+                          d.setMonth(d.getMonth() + 1);
+                          return d.toLocaleString('en-US', { month: 'short' });
+                        })(), 
+                        getVal: () => {
+                          const d = new Date();
+                          d.setMonth(d.getMonth() + 1, 1);
+                          return d.toISOString().split('T')[0];
+                        } 
+                      },
+                      { 
+                        label: (() => {
+                          const d = new Date();
+                          d.setMonth(d.getMonth() + 2);
+                          return d.toLocaleString('en-US', { month: 'short' });
+                        })(), 
+                        getVal: () => {
+                          const d = new Date();
+                          d.setMonth(d.getMonth() + 2, 1);
+                          return d.toISOString().split('T')[0];
+                        } 
+                      },
+                    ].map((item) => {
+                      const val = item.getVal();
+                      const isSelected = buyerData.shiftingDate === val;
+                      return (
+                        <button
+                          key={item.label}
+                          type="button"
+                          onClick={() => setBuyerData({ ...buyerData, shiftingDate: val })}
+                          className={`py-0.5 rounded text-[10px] font-bold transition-all duration-150 border active:scale-90 ${
+                            isSelected
+                              ? 'bg-flatzy-yellow text-flatzy-navy border-amber-400 font-black shadow-2xs scale-102'
+                              : 'bg-white text-slate-600 border-amber-200/70 hover:bg-amber-100/60'
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
+                {/* Family or Bachelor Box - Sleek Segmented Switch with Tactile Spring Micro-Interactions */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                    <Users className="w-3.5 h-3.5 text-slate-500" />
+                  <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                    <Users className="w-3 h-3 text-slate-500" />
                     <span>Family or Bachelor *</span>
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+
+                  {/* Unified Segmented Switch with Spring Bounce */}
+                  <div className="p-1 rounded-xl bg-slate-100 border border-slate-200/80 grid grid-cols-2 gap-1">
                     <button
                       type="button"
                       onClick={() => setBuyerData({ ...buyerData, tenantCategory: 'Family' })}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                      className={`py-2 px-3 rounded-lg text-xs font-black transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer select-none active:scale-95 ${
                         buyerData.tenantCategory === 'Family'
-                          ? 'bg-flatzy-navy text-flatzy-yellow border-flatzy-navy shadow-xs font-black'
-                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                          ? 'bg-white text-flatzy-navy shadow-sm ring-1 ring-slate-200/60 scale-[1.02]'
+                          : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 hover:scale-[1.01]'
                       }`}
                     >
-                      <Users className="w-3.5 h-3.5" />
+                      <Users className={`w-3.5 h-3.5 transition-all duration-200 ${
+                        buyerData.tenantCategory === 'Family' ? 'text-amber-500 scale-110' : 'text-slate-400'
+                      }`} />
                       <span>Family</span>
                     </button>
+
                     <button
                       type="button"
                       onClick={() => setBuyerData({ ...buyerData, tenantCategory: 'Bachelor' })}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                      className={`py-2 px-3 rounded-lg text-xs font-black transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer select-none active:scale-95 ${
                         buyerData.tenantCategory === 'Bachelor'
-                          ? 'bg-flatzy-navy text-flatzy-yellow border-flatzy-navy shadow-xs font-black'
-                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                          ? 'bg-white text-flatzy-navy shadow-sm ring-1 ring-slate-200/60 scale-[1.02]'
+                          : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 hover:scale-[1.01]'
                       }`}
                     >
-                      <User className="w-3.5 h-3.5" />
+                      <User className={`w-3.5 h-3.5 transition-all duration-200 ${
+                        buyerData.tenantCategory === 'Bachelor' ? 'text-amber-500 scale-110' : 'text-slate-400'
+                      }`} />
                       <span>Bachelor</span>
                     </button>
                   </div>
@@ -859,16 +994,16 @@ export const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({
               </div>
 
               {/* Submit CTA */}
-              <div className="pt-2">
+              <div className="pt-1">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-2.5 sm:py-3 rounded-xl bg-flatzy-yellow hover:bg-flatzy-yellowDark text-flatzy-navy font-black text-xs sm:text-sm shadow-soft transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50"
+                  className="w-full py-3 sm:py-3.5 px-5 rounded-xl bg-gradient-to-r from-emerald-500 via-[#25D366] to-emerald-600 hover:from-emerald-400 hover:via-[#25D366] hover:to-emerald-500 text-white font-black text-xs sm:text-sm tracking-wider uppercase shadow-md shadow-emerald-500/25 transition-all duration-200 flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50 group"
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 text-white" />
                   <span>{isSubmitting ? 'Saving requirements...' : 'Submit & Connect on WhatsApp'}</span>
                 </button>
-                <p className="text-[11px] text-slate-400 text-center mt-1.5">
+                <p className="text-[10px] text-slate-400 text-center mt-1">
                   ⚡ Auto-saves your requirements & opens WhatsApp
                 </p>
               </div>
